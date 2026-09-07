@@ -45,7 +45,7 @@ import ch.rolf.androidweather.domain.getWmo
 import ch.rolf.androidweather.domain.weatherMood
 import ch.rolf.androidweather.ui.WetterViewModel
 import ch.rolf.androidweather.ui.components.DayDetail
-import ch.rolf.androidweather.ui.components.HourDetail
+import ch.rolf.androidweather.ui.components.HourDetailSheet
 import ch.rolf.androidweather.ui.components.TempRangeBar
 import ch.rolf.androidweather.ui.components.WxCard
 import ch.rolf.androidweather.ui.components.moodColors
@@ -190,9 +190,10 @@ fun WocheScreen(vm: WetterViewModel) {
             }
         }
     }
-    selectedHour?.let { hour ->
-        ModalBottomSheet(onDismissRequest = { selectedHour = null }) {
-            HourDetail(hour, unit, bundle?.timezone)
-        }
-    }
+    HourDetailSheet(
+        hour = selectedHour,
+        unit = unit,
+        timeZone = bundle?.timezone,
+        onDismiss = { selectedHour = null }
+    )
 }

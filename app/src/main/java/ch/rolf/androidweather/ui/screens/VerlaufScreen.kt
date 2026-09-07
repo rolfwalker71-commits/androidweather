@@ -6,9 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,13 +19,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.rolf.androidweather.domain.HourPoint
 import ch.rolf.androidweather.domain.windHourBars
 import ch.rolf.androidweather.ui.WetterViewModel
-import ch.rolf.androidweather.ui.components.HourDetail
+import ch.rolf.androidweather.ui.components.HourDetailSheet
 import ch.rolf.androidweather.ui.components.HourlyForecastStrip
 import ch.rolf.androidweather.ui.components.LabeledPrecipChart
 import ch.rolf.androidweather.ui.components.WindDirChart
 import ch.rolf.androidweather.ui.components.WxCard
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VerlaufScreen(vm: WetterViewModel) {
     val ui by vm.state.collectAsStateWithLifecycle()
@@ -67,9 +64,10 @@ fun VerlaufScreen(vm: WetterViewModel) {
             WindDirChart(windHourBars(bundle.hours, 12), unit, bundle.timezone)
         }
     }
-    selected?.let { hour ->
-        ModalBottomSheet(onDismissRequest = { selected = null }) {
-            HourDetail(hour, unit, bundle?.timezone)
-        }
-    }
+    HourDetailSheet(
+        hour = selected,
+        unit = unit,
+        timeZone = bundle?.timezone,
+        onDismiss = { selected = null }
+    )
 }

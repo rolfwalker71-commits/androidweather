@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -107,7 +108,11 @@ fun WetterApp(vm: WetterViewModel = viewModel()) {
                             .statusBarsPadding()
                             .padding(16.dp)
                     ) {
-                        Text("Mehr", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(bottom = 16.dp))
+                        Text(
+                            "Mehr",
+                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
                         MehrMenu(onOpen = ::openMehr)
                     }
                 }

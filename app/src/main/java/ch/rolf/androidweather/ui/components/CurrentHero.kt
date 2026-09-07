@@ -86,6 +86,25 @@ private val NowValueStyle = TextStyle(
     fontFeatureSettings = "tnum"
 )
 
+fun heroMoodTopColor(mood: String, dark: Boolean): Color = when {
+    dark -> when (mood) {
+        "clear" -> Color(0xFF3D3420)
+        "night" -> Color(0xFF1C1830)
+        "rain" -> Color(0xFF1A2834)
+        "snow" -> Color(0xFF1C2834)
+        "storm" -> Color(0xFF2A2238)
+        else -> Color(0xFF2A2E32)
+    }
+    else -> when (mood) {
+        "clear" -> Color(0xFFFFE082)
+        "night" -> Color(0xFF0D47A1)
+        "rain" -> Color(0xFF64B5F6)
+        "snow" -> Color(0xFF64B5F6)
+        "storm" -> Color(0xFF006874)
+        else -> Color(0xFF78909C)
+    }
+}
+
 fun heroMoodBrush(mood: String, dark: Boolean): Brush = when {
     dark -> when (mood) {
         "clear" -> Brush.verticalGradient(listOf(Color(0xFF3D3420), Color(0xFF2C2824), Color(0xFF1E2021)))
