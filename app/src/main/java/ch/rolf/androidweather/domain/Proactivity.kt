@@ -10,15 +10,15 @@ private const val PRECIP_SUM_HOURS = 6
 fun buildForecastSnapshot(bundle: WeatherBundle): ForecastSnapshot {
     val hours = bundle.hours.take(HORIZON_HOURS)
     val precipHours = bundle.hours.take(PRECIP_SUM_HOURS)
-    val onset = hours.find { it.precipMm >= WET_MM }
-        ?: bundle.minutes.find { it.precipMm != null && it.precipMm >= 0.1 }
+    val precipOnsetIso = hours.find { it.precipMm >= WET_MM }?.time
+        ?: bundle.minutes.find { it.precipMm != null && it.precipMm >= 0.1 }?.time
     val precipNext6Mm = precipHours.sumOf { it.precipMm }
     val maxWind = hours.maxOfOrNull { it.wind }
     val maxGust = hours.mapNotNull { it.gusts }.maxOrNull()
     val today = bundle.days.firstOrNull()
     return ForecastSnapshot(
         dayKey = dayKeyInZone(bundle.current.time.ifBlank { bundle.fetchedAt }, bundle.timezone),
-        precipOnsetIso = onset?.time,
+        precipOnsetIso = precipOnsetIso,
         precipNext6Mm = precipNext6Mm,
         maxWindKmh = maxWind,
         maxGustKmh = maxGust,

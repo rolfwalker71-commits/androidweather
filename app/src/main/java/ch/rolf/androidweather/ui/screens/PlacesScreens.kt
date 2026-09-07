@@ -71,11 +71,15 @@ fun VergleichScreen(vm: WetterViewModel) {
             FilterChip(selected = slot == "a", onClick = { slot = "a" }, label = { Text("Ort A") })
             FilterChip(selected = slot == "b", onClick = { slot = "b" }, label = { Text("Ort B") })
         }
-        CitySearch(ui.searchResults, vm::search) { place ->
-            val a = if (slot == "a") place else ui.compareA?.place
-            val b = if (slot == "b") place else ui.compareB?.place
-            vm.compare(a, b)
-        }
+        CitySearch(
+            results = ui.searchResults,
+            onQuery = vm::search,
+            onSelect = { place ->
+                val a = if (slot == "a") place else ui.compareA?.place
+                val b = if (slot == "b") place else ui.compareB?.place
+                vm.compare(a, b)
+            }
+        )
         listOf("A" to ui.compareA, "B" to ui.compareB).forEach { (label, bundle) ->
             WxCard {
                 Text("Ort $label", style = MaterialTheme.typography.titleLarge)
@@ -102,7 +106,12 @@ fun PendelnScreen(vm: WetterViewModel) {
     ) {
         Text("Pendeln", style = MaterialTheme.typography.headlineSmall)
         Text("Zielort mit Lite-Prognose gegenüber dem aktuellen Ort.")
-        CitySearch(ui.searchResults, vm::search, vm::setCommute, placeholder = "Ziel suchen")
+        CitySearch(
+            results = ui.searchResults,
+            onQuery = vm::search,
+            onSelect = { vm.setCommute(it) },
+            placeholder = "Ziel suchen"
+        )
         destPlace?.let { Text("Ziel: ${placeShort(it)}") }
         val home = ui.bundle
         val dest = ui.commuteDest
