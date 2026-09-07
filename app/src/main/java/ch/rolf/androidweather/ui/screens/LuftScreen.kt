@@ -43,7 +43,7 @@ fun LuftScreen(vm: WetterViewModel) {
             Text(bundle.air?.european_aqi?.toInt()?.toString() ?: "–", style = MaterialTheme.typography.displaySmall)
             Text(aqi.label, style = MaterialTheme.typography.titleMedium)
             Text(aqi.hint)
-            LinearProgressIndicator(progress = { aqi.ratio.coerceIn(0f, 1f) })
+            LinearProgressIndicator(progress = aqi.ratio.coerceIn(0f, 1f))
         }
         WxCard {
             Text("Feinstaub", style = MaterialTheme.typography.titleLarge)

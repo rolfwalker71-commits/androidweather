@@ -24,13 +24,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.updateAll
 import ch.rolf.androidweather.data.PrefsStore
 import ch.rolf.androidweather.domain.Place
 import ch.rolf.androidweather.ui.components.WxCard
 import ch.rolf.androidweather.ui.theme.WetterTheme
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 class WidgetConfigActivity : ComponentActivity() {

@@ -31,7 +31,6 @@ import ch.rolf.androidweather.data.radarTileUrl
 import ch.rolf.androidweather.ui.WetterViewModel
 import kotlinx.coroutines.delay
 import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase
-import org.osmdroid.tileprovider.tilesource.XYTileSource
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.util.MapTileIndex
 import org.osmdroid.views.MapView
@@ -126,17 +125,12 @@ fun RadarScreen(vm: WetterViewModel) {
     }
 }
 
-private fun esriSource() = XYTileSource(
-    "EsriTopo", 1, 16, 256, "",
-    arrayOf("https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/")
-).let { source ->
-    object : OnlineTileSourceBase("EsriTopo", 1, 16, 256, "", arrayOf("")) {
-        override fun getTileURLString(pMapTileIndex: Long): String {
-            val z = MapTileIndex.getZoom(pMapTileIndex)
-            val x = MapTileIndex.getX(pMapTileIndex)
-            val y = MapTileIndex.getY(pMapTileIndex)
-            return ESRI_BASEMAP.replace("{z}", "$z").replace("{x}", "$x").replace("{y}", "$y")
-        }
+private fun esriSource() = object : OnlineTileSourceBase("EsriTopo", 1, 16, 256, "", arrayOf("")) {
+    override fun getTileURLString(pMapTileIndex: Long): String {
+        val z = MapTileIndex.getZoom(pMapTileIndex)
+        val x = MapTileIndex.getX(pMapTileIndex)
+        val y = MapTileIndex.getY(pMapTileIndex)
+        return ESRI_BASEMAP.replace("{z}", "$z").replace("{x}", "$x").replace("{y}", "$y")
     }
 }
 
