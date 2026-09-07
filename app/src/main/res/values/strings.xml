@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Wetter</string>
+    <string name="channel_alerts">Wetterwarnungen</string>
+    <string name="channel_ongoing">Dauerwetter</string>
+    <string name="widget_compact_label">Wetter 2×2</string>
+    <string name="widget_wide_label">Wetter 4×2</string>
+    <string name="widget_description">Ort, Temperatur und nächster Regen</string>
+</resources>

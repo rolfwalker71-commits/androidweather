@@ -1,0 +1,3 @@
+services:
+  apk:
+    image: ghcr.io/rolfwalker71-commits/androidweather:${TAG:-latest}
