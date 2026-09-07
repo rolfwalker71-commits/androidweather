@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -31,6 +32,7 @@ import ch.rolf.androidweather.domain.formatHourLabel
 import ch.rolf.androidweather.domain.formatPercent
 import ch.rolf.androidweather.domain.formatTemp
 import ch.rolf.androidweather.domain.getWmo
+import ch.rolf.androidweather.domain.parseForecastEpochMilli
 import ch.rolf.androidweather.domain.weatherMood
 import ch.rolf.androidweather.widget.glyphEmoji
 
@@ -128,6 +130,8 @@ fun HourlyForecastStrip(
     timezone: String,
     modifier: Modifier = Modifier,
     compact: Boolean = false,
+    labelFirstAsNow: Boolean = true,
+    nowEpochMilli: Long? = null,
     onSelect: (HourPoint) -> Unit
 ) {
     val visible = hours
@@ -146,6 +150,8 @@ fun HourlyForecastStrip(
                     index = index,
                     maxPrecip = maxPrecip,
                     dark = dark,
+                    labelFirstAsNow = labelFirstAsNow,
+                    nowEpochMilli = nowEpochMilli,
                     modifier = Modifier.weight(1f),
                     onSelect = onSelect
                 )
@@ -163,7 +169,9 @@ fun HourlyForecastStrip(
                     index = index,
                     maxPrecip = maxPrecip,
                     dark = dark,
-                    modifier = Modifier.width(78.dp),
+                    labelFirstAsNow = labelFirstAsNow,
+                    nowEpochMilli = nowEpochMilli,
+                    modifier = Modifier.width(72.dp),
                     onSelect = onSelect
                 )
             }
@@ -178,18 +186,24 @@ private fun HourChip(
     index: Int,
     maxPrecip: Double,
     dark: Boolean,
+    labelFirstAsNow: Boolean,
+    nowEpochMilli: Long?,
     modifier: Modifier,
     onSelect: (HourPoint) -> Unit
 ) {
     val mood = moodColors(weatherMood(hour.code, hour.isDay), dark)
-    val label = if (index == 0) "Jetzt" else formatHourLabel(hour.time, timezone)
+    val label = if (labelFirstAsNow && index == 0) "Jetzt" else formatHourLabel(hour.time, timezone)
+    val past = nowEpochMilli != null &&
+        parseForecastEpochMilli(hour.time, timezone) + 60L * 60L * 1000L <= nowEpochMilli
     Column(
         modifier
+            .alpha(if (past) 0.55f else 1f)
             .clip(RoundedCornerShape(24.dp))
             .background(mood.container)
             .then(
-                if (index == 0) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(24.dp))
-                else Modifier
+                if (labelFirstAsNow && index == 0) {
+                    Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(24.dp))
+                } else Modifier
             )
             .clickable(role = Role.Button) { onSelect(hour) }
             .padding(horizontal = 6.dp, vertical = 10.dp),

@@ -7,11 +7,17 @@ import androidx.datastore.preferences.preferencesDataStore
 import ch.rolf.androidweather.data.PrefsStore
 import ch.rolf.androidweather.domain.Place
 import ch.rolf.androidweather.domain.WeatherBundle
+import ch.rolf.androidweather.domain.WindUnit
+import ch.rolf.androidweather.domain.formatHpa
 import ch.rolf.androidweather.domain.formatHourLabel
+import ch.rolf.androidweather.domain.formatPercent
 import ch.rolf.androidweather.domain.formatTemp
+import ch.rolf.androidweather.domain.formatWidgetUpdated
+import ch.rolf.androidweather.domain.formatWind
 import ch.rolf.androidweather.domain.getWmo
 import ch.rolf.androidweather.domain.nextPrecipLine
 import ch.rolf.androidweather.domain.samePlace
+import ch.rolf.androidweather.domain.windDirection
 import kotlinx.coroutines.flow.first
 
 private val Context.widgetStore by preferencesDataStore("widget_config")
@@ -31,7 +37,11 @@ data class WidgetSnapshot(
     val rainLine: String?,
     val glyph: String,
     val highLow: String? = null,
-    val hours: List<WidgetHour> = emptyList()
+    val hours: List<WidgetHour> = emptyList(),
+    val wind: String? = null,
+    val pressure: String? = null,
+    val humidity: String? = null,
+    val updatedAt: String? = null
 )
 
 object WidgetPrefs {
@@ -64,14 +74,24 @@ suspend fun loadWidgetSnapshot(context: Context, appWidgetId: Int): WidgetSnapsh
     val bundle = prefs.lastBundle()
     val used = if (bundle != null && place != null && samePlace(bundle.place, place)) bundle
     else bundle
-    return snapshotFrom(used, place?.name ?: used?.place?.name ?: "Wetter")
+    return snapshotFrom(
+        used,
+        place?.name ?: used?.place?.name ?: "Wetter",
+        windUnit = prefs.windUnit()
+    )
 }
 
-fun snapshotFrom(bundle: WeatherBundle?, placeName: String, hourCount: Int = 5): WidgetSnapshot {
+fun snapshotFrom(
+    bundle: WeatherBundle?,
+    placeName: String,
+    hourCount: Int = 5,
+    windUnit: WindUnit = WindUnit.Kmh
+): WidgetSnapshot {
     if (bundle == null) {
         return WidgetSnapshot(placeName, "–", "Keine Daten", null, "cloud")
     }
-    val wmo = getWmo(bundle.current.weather_code, bundle.current.is_day == 1)
+    val current = bundle.current
+    val wmo = getWmo(current.weather_code, current.is_day == 1)
     val today = bundle.days.firstOrNull()
     val hours = bundle.hours.take(hourCount).mapIndexed { index, hour ->
         WidgetHour(
@@ -82,11 +102,15 @@ fun snapshotFrom(bundle: WeatherBundle?, placeName: String, hourCount: Int = 5):
     }
     return WidgetSnapshot(
         placeName = placeName,
-        temperature = formatTemp(bundle.current.temperature_2m),
+        temperature = formatTemp(current.temperature_2m),
         condition = wmo.label,
         rainLine = nextPrecipLine(bundle),
         glyph = wmo.glyph,
         highLow = today?.let { "${formatTemp(it.tMin)} / ${formatTemp(it.tMax)}" },
-        hours = hours
+        hours = hours,
+        wind = "${formatWind(current.wind_speed_10m, windUnit)} ${windDirection(current.wind_direction_10m)}",
+        pressure = formatHpa(current.pressure_msl),
+        humidity = "${formatPercent(current.relative_humidity_2m)} rF",
+        updatedAt = formatWidgetUpdated(bundle.fetchedAt, bundle.timezone)
     )
 }

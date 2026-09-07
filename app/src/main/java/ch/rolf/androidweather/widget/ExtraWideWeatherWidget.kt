@@ -17,7 +17,6 @@ import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
-import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
@@ -40,11 +39,12 @@ class ExtraWideWeatherWidget : GlanceAppWidget() {
 @Composable
 fun ExtraWideWidgetLayout(snapshot: WidgetSnapshot) {
     val hours = snapshot.hours.take(5)
+    val metrics = listOfNotNull(snapshot.wind, snapshot.pressure, snapshot.humidity).joinToString(" · ")
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
             .background(GlanceTheme.colors.primaryContainer)
-            .padding(16.dp)
+            .padding(12.dp)
             .clickable(actionStartActivity<MainActivity>()),
         verticalAlignment = Alignment.Top
     ) {
@@ -58,7 +58,7 @@ fun ExtraWideWidgetLayout(snapshot: WidgetSnapshot) {
                     maxLines = 1,
                     style = TextStyle(
                         color = GlanceTheme.colors.onPrimaryContainer,
-                        fontSize = 16.sp,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Medium
                     )
                 )
@@ -67,16 +67,16 @@ fun ExtraWideWidgetLayout(snapshot: WidgetSnapshot) {
                         text = snapshot.temperature,
                         style = TextStyle(
                             color = GlanceTheme.colors.onPrimaryContainer,
-                            fontSize = 38.sp,
+                            fontSize = 34.sp,
                             fontWeight = FontWeight.Bold
                         )
                     )
-                    Text(text = "  ${glyphEmoji(snapshot.glyph)}", style = TextStyle(fontSize = 30.sp))
+                    Text(text = "  ${glyphEmoji(snapshot.glyph)}", style = TextStyle(fontSize = 26.sp))
                 }
                 Text(
                     text = snapshot.condition,
                     maxLines = 1,
-                    style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 13.sp)
+                    style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 12.sp)
                 )
             }
             Column(horizontalAlignment = Alignment.End) {
@@ -95,14 +95,23 @@ fun ExtraWideWidgetLayout(snapshot: WidgetSnapshot) {
                     Text(
                         text = line,
                         maxLines = 2,
-                        style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 12.sp)
+                        style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 11.sp)
                     )
                 }
             }
         }
-        Spacer(GlanceModifier.defaultWeight())
+        if (metrics.isNotEmpty()) {
+            Text(
+                text = metrics,
+                maxLines = 1,
+                style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 11.sp),
+                modifier = GlanceModifier.fillMaxWidth().padding(top = 6.dp)
+            )
+        }
         if (hours.isNotEmpty()) {
-            Row(modifier = GlanceModifier.fillMaxWidth()) {
+            Row(
+                modifier = GlanceModifier.fillMaxWidth().padding(top = 8.dp)
+            ) {
                 hours.forEach { hour ->
                     Column(
                         modifier = GlanceModifier.defaultWeight(),
@@ -111,20 +120,28 @@ fun ExtraWideWidgetLayout(snapshot: WidgetSnapshot) {
                         Text(
                             text = hour.time,
                             maxLines = 1,
-                            style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 11.sp)
+                            style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 10.sp)
                         )
-                        Text(text = glyphEmoji(hour.glyph), style = TextStyle(fontSize = 18.sp))
+                        Text(text = glyphEmoji(hour.glyph), style = TextStyle(fontSize = 16.sp))
                         Text(
                             text = hour.temperature,
                             style = TextStyle(
                                 color = GlanceTheme.colors.onPrimaryContainer,
-                                fontSize = 14.sp,
+                                fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium
                             )
                         )
                     }
                 }
             }
+        }
+        snapshot.updatedAt?.let { stamp ->
+            Text(
+                text = stamp,
+                maxLines = 1,
+                style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 10.sp),
+                modifier = GlanceModifier.fillMaxWidth().padding(top = 4.dp)
+            )
         }
     }
 }

@@ -176,3 +176,16 @@ fun formatAlertValidity(onset: String?, expires: String?, timeZone: String? = nu
 
 fun hoursOnDay(hours: List<HourPoint>, date: String): List<HourPoint> =
     hours.filter { it.time.take(10) == date.take(10) }
+
+fun formatUv(value: Double): String = String.format(java.util.Locale.US, "%.1f", value)
+
+fun formatWidgetUpdated(iso: String, timeZone: String? = null, now: Long = System.currentTimeMillis()): String {
+    val relative = formatUpdatedRelative(iso, now)
+    val then = parseForecastEpochMilli(iso, timeZone)
+    val minutes = if (then > 0) ((now - then) / 60_000).coerceAtLeast(0) else Long.MAX_VALUE
+    return when {
+        relative.isEmpty() -> "Aktualisiert ${formatTime(iso, timeZone)}"
+        minutes < 60 -> if (relative == "gerade eben") "Aktualisiert gerade eben" else "Aktualisiert $relative"
+        else -> "Aktualisiert ${formatTime(iso, timeZone)}"
+    }
+}
