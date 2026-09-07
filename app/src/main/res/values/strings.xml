@@ -3,6 +3,8 @@
     <string name="app_name">Wetter</string>
     <string name="channel_alerts">Wetterwarnungen</string>
     <string name="channel_ongoing">Dauerwetter</string>
+    <string name="ongoing_metric_rain">Regen</string>
+    <string name="ongoing_metric_wind">Wind</string>
     <string name="widget_compact_label">Wetter 2×2</string>
     <string name="widget_wide_label">Wetter 4×2</string>
     <string name="widget_extra_wide_label">Wetter 5×2</string>

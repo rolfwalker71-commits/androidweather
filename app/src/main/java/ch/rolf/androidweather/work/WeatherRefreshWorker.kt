@@ -65,7 +65,7 @@ class WeatherRefreshWorker(
             prefs.saveCooldowns(cooldowns)
 
             if (prefs.ongoing()) {
-                WetterNotifications.showOngoing(applicationContext, bundle)
+                WetterNotifications.showOngoing(applicationContext, bundle, prefs.windUnit())
             } else {
                 WetterNotifications.cancelOngoing(applicationContext)
             }

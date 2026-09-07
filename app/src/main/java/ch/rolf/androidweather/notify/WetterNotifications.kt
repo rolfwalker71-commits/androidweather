@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -12,8 +13,10 @@ import ch.rolf.androidweather.MainActivity
 import ch.rolf.androidweather.R
 import ch.rolf.androidweather.domain.NotifyCandidate
 import ch.rolf.androidweather.domain.WeatherBundle
+import ch.rolf.androidweather.domain.WindUnit
 import ch.rolf.androidweather.domain.formatTemp
 import ch.rolf.androidweather.domain.getWmo
+import ch.rolf.androidweather.domain.weatherMood
 
 object WetterNotifications {
     const val CHANNEL_ALERTS = "wetter_alerts"
@@ -62,10 +65,17 @@ object WetterNotifications {
         }
     }
 
-    fun showOngoing(context: Context, bundle: WeatherBundle) {
+    fun showOngoing(
+        context: Context,
+        bundle: WeatherBundle,
+        windUnit: WindUnit = WindUnit.Kmh
+    ) {
         ensureChannels(context)
         val wmo = getWmo(bundle.current.weather_code, bundle.current.is_day == 1)
-        val title = "${formatTemp(bundle.current.temperature_2m)} · ${bundle.place.name}"
+        val mood = weatherMood(bundle.current.weather_code, bundle.current.is_day == 1)
+        val night = context.resources.configuration.uiMode and
+            Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+        val title = "${bundle.place.name} · ${formatTemp(bundle.current.temperature_2m)}"
         val text = wmo.label
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -75,10 +85,17 @@ object WetterNotifications {
             context, ONGOING_ID, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+        val collapsed = collapsedOngoingViews(context, bundle)
+        val expanded = expandedOngoingViews(context, bundle, windUnit)
         val notification = NotificationCompat.Builder(context, CHANNEL_ONGOING)
             .setSmallIcon(R.drawable.ic_stat_weather)
             .setContentTitle(title)
             .setContentText(text)
+            .setColor(moodAccentColor(mood, night))
+            .setColorized(false)
+            .setStyle(NotificationCompat.DecoratedCustomViewStyle())
+            .setCustomContentView(collapsed)
+            .setCustomBigContentView(expanded)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setSilent(true)

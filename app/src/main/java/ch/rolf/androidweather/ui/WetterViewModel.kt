@@ -98,7 +98,9 @@ class WetterViewModel(app: Application) : AndroidViewModel(app) {
                     } else prefs.loadNotice(place)
                     _state.value = _state.value.copy(bundle = bundle, loading = false, notice = notice, error = null, stale = false)
                     launch { loadSwissExtras(place) }
-                    if (prefs.ongoing()) WetterNotifications.showOngoing(getApplication(), bundle)
+                    if (prefs.ongoing()) {
+                        WetterNotifications.showOngoing(getApplication(), bundle, prefs.windUnit())
+                    }
                     WeatherRefreshWorker.enqueue(getApplication())
                 }
                 .onFailure {
@@ -165,8 +167,11 @@ class WetterViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             prefs.saveOngoing(enabled)
             val bundle = _state.value.bundle
-            if (enabled && bundle != null) WetterNotifications.showOngoing(getApplication(), bundle)
-            else WetterNotifications.cancelOngoing(getApplication())
+            if (enabled && bundle != null) {
+                WetterNotifications.showOngoing(getApplication(), bundle, prefs.windUnit())
+            } else {
+                WetterNotifications.cancelOngoing(getApplication())
+            }
         }
     }
 
