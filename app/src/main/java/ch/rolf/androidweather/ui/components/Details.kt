@@ -11,7 +11,6 @@ import androidx.compose.ui.unit.dp
 import ch.rolf.androidweather.domain.DayPoint
 import ch.rolf.androidweather.domain.HourPoint
 import ch.rolf.androidweather.domain.WindUnit
-import ch.rolf.androidweather.domain.formatHpa
 import ch.rolf.androidweather.domain.formatHourLabel
 import ch.rolf.androidweather.domain.formatMm
 import ch.rolf.androidweather.domain.formatPercent

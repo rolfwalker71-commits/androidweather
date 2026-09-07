@@ -20,7 +20,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import ch.rolf.androidweather.domain.Place
 import ch.rolf.androidweather.domain.commuteHint
 import ch.rolf.androidweather.domain.formatTemp
 import ch.rolf.androidweather.domain.getWmo
