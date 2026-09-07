@@ -47,7 +47,7 @@ fun LuftScreen(vm: WetterViewModel) {
     ) {
         if (bundle == null) {
             Text("Keine Daten.")
-            return
+            return@TabletWidth
         }
         val aqiValue = bundle.air?.european_aqi
         val aqi = europeanAqi(aqiValue)

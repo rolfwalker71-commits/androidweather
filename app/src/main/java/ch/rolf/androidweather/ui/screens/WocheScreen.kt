@@ -71,7 +71,7 @@ fun WocheScreen(vm: WetterViewModel) {
     ) {
         if (bundle == null) {
             Text("Keine Daten.")
-            return
+            return@TabletWidth
         }
         val days = bundle.days
         val weekMin = days.minOfOrNull { it.tMin } ?: 0.0
