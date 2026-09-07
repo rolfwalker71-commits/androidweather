@@ -1,7 +1,6 @@
 package ch.rolf.androidweather.domain
 
 import java.time.Instant
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 private const val HORIZON_HOURS = 12
@@ -50,7 +49,7 @@ fun diffForecastSnapshots(
         )
     } else if (
         previous.precipOnsetIso != null && current.precipOnsetIso != null &&
-        parseMs(current.precipOnsetIso) <= parseMs(previous.precipOnsetIso) - EARLIER_MS
+        parseMs(current.precipOnsetIso, timeZone) <= parseMs(previous.precipOnsetIso, timeZone) - EARLIER_MS
     ) {
         val whenLabel = formatTime(current.precipOnsetIso, timeZone)
         changes += ProactivityChange(
@@ -107,11 +106,10 @@ private fun wasDryPlan(snap: ForecastSnapshot) =
 private fun isWetPlan(snap: ForecastSnapshot) =
     snap.precipOnsetIso != null || snap.precipNext6Mm >= NEW_RAIN_MM
 
-private fun parseMs(iso: String): Long =
-    runCatching { Instant.parse(iso).toEpochMilli() }.getOrDefault(0L)
+private fun parseMs(iso: String, timeZone: String? = null): Long =
+    parseForecastEpochMilli(iso, timeZone)
 
 private fun dayKeyInZone(iso: String, timeZone: String?): String {
-    val instant = runCatching { Instant.parse(iso) }.getOrNull() ?: Instant.now()
-    val zone = timeZone?.let { runCatching { ZoneId.of(it) }.getOrNull() } ?: ZoneId.systemDefault()
-    return DateTimeFormatter.ISO_LOCAL_DATE.format(instant.atZone(zone))
+    val instant = parseForecastInstant(iso, timeZone) ?: Instant.now()
+    return DateTimeFormatter.ISO_LOCAL_DATE.format(instant.atZone(zoneIdOf(timeZone)))
 }

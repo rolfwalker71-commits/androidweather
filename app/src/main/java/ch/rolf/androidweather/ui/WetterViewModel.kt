@@ -45,7 +45,8 @@ data class WetterUiState(
     val compareA: WeatherBundle? = null,
     val compareB: WeatherBundle? = null,
     val commuteDest: WeatherBundle? = null,
-    val favoriteBundles: List<WeatherBundle> = emptyList()
+    val favoriteBundles: List<WeatherBundle> = emptyList(),
+    val stale: Boolean = false
 )
 
 class WetterViewModel(app: Application) : AndroidViewModel(app) {
@@ -95,7 +96,7 @@ class WetterViewModel(app: Application) : AndroidViewModel(app) {
                         prefs.saveNotice(n)
                         n
                     } else prefs.loadNotice(place)
-                    _state.value = _state.value.copy(bundle = bundle, loading = false, notice = notice, error = null)
+                    _state.value = _state.value.copy(bundle = bundle, loading = false, notice = notice, error = null, stale = false)
                     launch { loadSwissExtras(place) }
                     if (prefs.ongoing()) WetterNotifications.showOngoing(getApplication(), bundle)
                     WeatherRefreshWorker.enqueue(getApplication())
@@ -103,7 +104,8 @@ class WetterViewModel(app: Application) : AndroidViewModel(app) {
                 .onFailure {
                     _state.value = _state.value.copy(
                         loading = false,
-                        error = "Wetter konnte nicht geladen werden."
+                        error = "Wetter konnte nicht geladen werden.",
+                        stale = _state.value.bundle != null
                     )
                 }
         }

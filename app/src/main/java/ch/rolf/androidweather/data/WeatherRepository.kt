@@ -17,6 +17,7 @@ import ch.rolf.androidweather.domain.RadarCatalog
 import ch.rolf.androidweather.domain.StationObservation
 import ch.rolf.androidweather.domain.WeatherBundle
 import ch.rolf.androidweather.domain.nearestLakes
+import ch.rolf.androidweather.domain.parseForecastEpochMilli
 import ch.rolf.androidweather.domain.toLakeSnapshot
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -224,14 +225,16 @@ class WeatherRepository(
         )
         val hourly = forecast["hourly"]?.jsonObject
         val allHours = mapHours(hourly)
-        val now = runCatching { Instant.parse(current.time).toEpochMilli() }.getOrDefault(System.currentTimeMillis())
-        var start = allHours.indexOfFirst { parseMs(it.time) >= now }
+        val timezone = forecast.str("timezone") ?: "Europe/Zurich"
+        val now = parseForecastEpochMilli(current.time, timezone).takeIf { it > 0 }
+            ?: System.currentTimeMillis()
+        var start = allHours.indexOfFirst { parseForecastEpochMilli(it.time, timezone) >= now }
         if (start < 0) start = 0
         val days = mapDays(forecast["daily"]?.jsonObject)
-        val minutes = mapMinutes(forecast["minutely_15"]?.jsonObject, now)
+        val minutes = mapMinutes(forecast["minutely_15"]?.jsonObject, now, timezone)
         return WeatherBundle(
             place = place,
-            timezone = forecast.str("timezone") ?: "Europe/Zurich",
+            timezone = timezone,
             current = current,
             hours = allHours.drop(start).take(24),
             allHours = allHours,
@@ -246,8 +249,8 @@ class WeatherRepository(
                     uv_index = it.dbl("uv_index")
                 )
             },
-            pollen = currentPollen(air),
-            airTrend = mapAirTrend(air),
+            pollen = currentPollen(air, timezone),
+            airTrend = mapAirTrend(air, timezone),
             elevations = elevations,
             lakes = lakes,
             station = station,
@@ -306,7 +309,7 @@ class WeatherRepository(
         }
     }
 
-    private fun mapMinutes(minutely: JsonObject?, now: Long): List<MinutePoint> {
+    private fun mapMinutes(minutely: JsonObject?, now: Long, timezone: String): List<MinutePoint> {
         if (minutely == null) return emptyList()
         val times = minutely.strList("time")
         val points = times.indices.map { i ->
@@ -322,16 +325,16 @@ class WeatherRepository(
                 snowfall = minutely.dblAt("snowfall", i)
             )
         }
-        var start = points.indexOfFirst { parseMs(it.time) >= now }
+        var start = points.indexOfFirst { parseForecastEpochMilli(it.time, timezone) >= now }
         if (start < 0) start = 0
         return points.drop(start).take(24)
     }
 
-    private fun currentPollen(air: JsonObject?): PollenValues {
+    private fun currentPollen(air: JsonObject?, timezone: String): PollenValues {
         val hourly = air?.get("hourly")?.jsonObject ?: return PollenValues()
         val times = hourly.strList("time")
         if (times.isEmpty()) return PollenValues()
-        var idx = times.indexOfFirst { parseMs(it) >= System.currentTimeMillis() }
+        var idx = times.indexOfFirst { parseForecastEpochMilli(it, timezone) >= System.currentTimeMillis() }
         if (idx < 0) idx = 0
         return PollenValues(
             alder = hourly.dblAt("alder_pollen", idx),
@@ -340,11 +343,11 @@ class WeatherRepository(
         )
     }
 
-    private fun mapAirTrend(air: JsonObject?): List<AirTrendPoint> {
+    private fun mapAirTrend(air: JsonObject?, timezone: String): List<AirTrendPoint> {
         val hourly = air?.get("hourly")?.jsonObject ?: return emptyList()
         val times = hourly.strList("time")
         if (times.isEmpty()) return emptyList()
-        var idx = times.indexOfFirst { parseMs(it) >= System.currentTimeMillis() }
+        var idx = times.indexOfFirst { parseForecastEpochMilli(it, timezone) >= System.currentTimeMillis() }
         if (idx < 0) idx = 0
         return times.drop(idx).take(12).mapIndexed { offset, time ->
             AirTrendPoint(
@@ -365,8 +368,8 @@ class WeatherRepository(
     }
 }
 
-internal fun parseMs(iso: String): Long =
-    runCatching { Instant.parse(iso).toEpochMilli() }.getOrDefault(0L)
+internal fun parseMs(iso: String, timeZone: String? = null): Long =
+    parseForecastEpochMilli(iso, timeZone)
 
 internal fun JsonObject.str(key: String): String? = this[key]?.jsonPrimitive?.content
 internal fun JsonObject.dbl(key: String): Double? = this[key]?.jsonPrimitive?.doubleOrNull

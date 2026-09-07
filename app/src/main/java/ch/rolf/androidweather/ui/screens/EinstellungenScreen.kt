@@ -32,6 +32,7 @@ import ch.rolf.androidweather.ui.WetterViewModel
 import ch.rolf.androidweather.ui.components.CitySearch
 import ch.rolf.androidweather.ui.components.WxCard
 import ch.rolf.androidweather.widget.CompactWidgetReceiver
+import ch.rolf.androidweather.widget.ExtraWideWidgetReceiver
 import ch.rolf.androidweather.widget.WideWidgetReceiver
 
 @Composable
@@ -142,6 +143,15 @@ fun EinstellungenScreen(vm: WetterViewModel) {
                 },
                 modifier = Modifier.heightIn(min = 48.dp)
             ) { Text("4×2 Widget anheften") }
+            TextButton(
+                onClick = {
+                    val mgr = AppWidgetManager.getInstance(context)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && mgr.isRequestPinAppWidgetSupported) {
+                        mgr.requestPinAppWidget(ComponentName(context, ExtraWideWidgetReceiver::class.java), null, null)
+                    }
+                },
+                modifier = Modifier.heightIn(min = 48.dp)
+            ) { Text("5×2 Widget anheften") }
         }
     }
 }

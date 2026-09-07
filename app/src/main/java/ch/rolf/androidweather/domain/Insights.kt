@@ -36,7 +36,7 @@ fun insightLine(bundle: WeatherBundle): String? {
     }
     val clearHour = bundle.hours.find {
         it.cloud != null && it.cloud <= 25 && it.code <= 1 &&
-            runCatching { java.time.Instant.parse(it.time).toEpochMilli() > System.currentTimeMillis() }.getOrDefault(false)
+            parseForecastEpochMilli(it.time, bundle.timezone) > System.currentTimeMillis()
     }
     val cloudNow = now.cloud ?: bundle.current.cloud_cover
     if (clearHour != null && cloudNow >= 55) {

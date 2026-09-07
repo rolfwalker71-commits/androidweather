@@ -53,8 +53,7 @@ fun namedWind(place: Place, bundle: WeatherBundle): NamedWind {
             true
         )
     }
-    val hourOfDay = runCatching { java.time.Instant.parse(current.time).atZone(java.time.ZoneId.systemDefault()).hour }
-        .getOrDefault(12)
+    val hourOfDay = parseZoned(current.time, bundle.timezone)?.hour ?: 12
     val alpine = !mittelland && place.latitude in 45.85..47.1
     if (alpine && speed in 6.0..22.0 && gusts < 35) {
         if (hourOfDay in 10..17 && dirBetween(dir, 160.0, 220.0)) {

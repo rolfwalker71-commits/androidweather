@@ -16,6 +16,7 @@ import ch.rolf.androidweather.domain.heroProactivityLine
 import ch.rolf.androidweather.domain.placeKey
 import ch.rolf.androidweather.notify.WetterNotifications
 import ch.rolf.androidweather.widget.CompactWeatherWidget
+import ch.rolf.androidweather.widget.ExtraWideWeatherWidget
 import ch.rolf.androidweather.widget.WideWeatherWidget
 import java.time.Instant
 import java.util.concurrent.TimeUnit
@@ -71,6 +72,7 @@ class WeatherRefreshWorker(
 
             CompactWeatherWidget().updateAll(applicationContext)
             WideWeatherWidget().updateAll(applicationContext)
+            ExtraWideWeatherWidget().updateAll(applicationContext)
             Result.success()
         }.getOrElse { Result.retry() }
     }

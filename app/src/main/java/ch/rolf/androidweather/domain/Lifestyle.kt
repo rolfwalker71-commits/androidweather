@@ -12,11 +12,11 @@ data class SkyWatch(
 
 fun skyWatch(bundle: WeatherBundle): SkyWatch {
     val today = bundle.days.firstOrNull()
-    val moon = moonInfo(runCatching { Instant.parse(bundle.current.time) }.getOrDefault(Instant.now()))
+    val moon = moonInfo(parseForecastInstant(bundle.current.time, bundle.timezone) ?: Instant.now())
     if (today?.sunrise.isNullOrBlank() || today?.sunset.isNullOrBlank()) {
         return SkyWatch(null, null, null, null, moon.label)
     }
-    val sunset = Instant.parse(today!!.sunset)
+    val sunset = parseForecastInstant(today!!.sunset, bundle.timezone) ?: Instant.now()
     val eveningStart = sunset.minusSeconds(55 * 60)
     val cloud = bundle.hours.firstOrNull()?.cloud ?: bundle.current.cloud_cover
     val goldOk = cloud <= 55

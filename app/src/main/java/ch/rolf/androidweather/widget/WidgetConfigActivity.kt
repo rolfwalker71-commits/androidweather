@@ -45,6 +45,7 @@ class WidgetConfigActivity : ComponentActivity() {
                                 WidgetPrefs.save(this@WidgetConfigActivity, appWidgetId, source, favorite)
                                 CompactWeatherWidget().updateAll(this@WidgetConfigActivity)
                                 WideWeatherWidget().updateAll(this@WidgetConfigActivity)
+                                ExtraWideWeatherWidget().updateAll(this@WidgetConfigActivity)
                             }
                             val result = Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
                             setResult(RESULT_OK, result)

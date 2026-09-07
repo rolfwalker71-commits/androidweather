@@ -1,6 +1,5 @@
 package ch.rolf.androidweather.ui.screens
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -35,17 +33,20 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.rolf.androidweather.domain.HourPoint
 import ch.rolf.androidweather.domain.clothingLine
 import ch.rolf.androidweather.domain.formatAlertValidity
-import ch.rolf.androidweather.domain.formatHour
+import ch.rolf.androidweather.domain.formatHpa
 import ch.rolf.androidweather.domain.formatPercent
+import ch.rolf.androidweather.domain.formatStationLine
 import ch.rolf.androidweather.domain.formatTemp
-import ch.rolf.androidweather.domain.formatUpdatedRelative
+import ch.rolf.androidweather.domain.formatTime
+import ch.rolf.androidweather.domain.formatWind
 import ch.rolf.androidweather.domain.getWmo
 import ch.rolf.androidweather.domain.insightLine
 import ch.rolf.androidweather.domain.nextPrecipLine
-import ch.rolf.androidweather.domain.placeShort
+import ch.rolf.androidweather.domain.placeLabel
+import ch.rolf.androidweather.domain.windDirection
 import ch.rolf.androidweather.ui.WetterViewModel
-import ch.rolf.androidweather.ui.components.CitySearch
 import ch.rolf.androidweather.ui.components.HourDetail
+import ch.rolf.androidweather.ui.components.HourlyForecastStrip
 import ch.rolf.androidweather.ui.components.WxCard
 import ch.rolf.androidweather.widget.glyphEmoji
 
@@ -62,21 +63,18 @@ fun JetztScreen(vm: WetterViewModel) {
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
-                .padding(bottom = 80.dp),
+                .padding(bottom = 88.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            CitySearch(ui.searchResults, vm::search, vm::selectPlace)
             WxCard {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
-                        Text(placeShort(ui.place), style = MaterialTheme.typography.headlineSmall)
-                        bundle?.let {
-                            Text(
-                                formatUpdatedRelative(it.fetchedAt),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        Text(ui.place.name, style = MaterialTheme.typography.headlineSmall)
+                        Text(
+                            placeLabel(ui.place),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                     IconButton(onClick = { vm.toggleFavorite(ui.place) }, modifier = Modifier.size(48.dp)) {
                         Icon(
@@ -93,13 +91,37 @@ fun JetztScreen(vm: WetterViewModel) {
                     }
                     Text(wmo.label, style = MaterialTheme.typography.titleMedium)
                     Text("Gefühlt ${formatTemp(bundle.current.apparent_temperature)}")
+                    bundle.station?.let {
+                        Text(
+                            formatStationLine(it, bundle.timezone),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                     nextPrecipLine(bundle)?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
                     insightLine(bundle)?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
                     clothingLine(bundle)?.let { Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     ui.notice?.let { Text(it.line, color = MaterialTheme.colorScheme.primary) }
-                    bundle.station?.let {
+                    Text(
+                        "Wind ${formatWind(bundle.current.wind_speed_10m, unit)} aus ${windDirection(bundle.current.wind_direction_10m)}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    val metrics = buildList {
+                        add("Feuchte ${formatPercent(bundle.current.relative_humidity_2m)}")
+                        add("Druck ${formatHpa(bundle.current.pressure_msl)}")
+                        add("Bewölkung ${formatPercent(bundle.current.cloud_cover)}")
+                    }
+                    Text(
+                        metrics.joinToString(" · "),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    bundle.days.firstOrNull()?.let { today ->
+                        val sun = if (today.sunrise.isNotBlank() && today.sunset.isNotBlank()) {
+                            " · Sonne ${formatTime(today.sunrise, bundle.timezone)} – ${formatTime(today.sunset, bundle.timezone)}"
+                        } else ""
                         Text(
-                            "${it.name} ${formatTemp(it.temperature)}",
+                            "Heute ${formatTemp(today.tMin)} bis ${formatTemp(today.tMax)}$sun",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -111,19 +133,14 @@ fun JetztScreen(vm: WetterViewModel) {
                 }
             }
             if (bundle != null) {
-                Text("Nächste Stunden", style = MaterialTheme.typography.titleLarge)
-                Row(
-                    Modifier.horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    bundle.hours.take(4).forEach { hour ->
-                        WxCard(modifier = Modifier.width(132.dp), onClick = { selectedHour = hour }) {
-                            Text(formatHour(hour.time), style = MaterialTheme.typography.labelLarge)
-                            Text(formatTemp(hour.temperature), style = MaterialTheme.typography.headlineSmall)
-                            Text(glyphEmoji(getWmo(hour.code, hour.isDay).glyph))
-                            hour.precipProb?.let { Text(formatPercent(it)) }
-                        }
-                    }
+                WxCard {
+                    Text("Nächste 4 Stunden", style = MaterialTheme.typography.titleLarge)
+                    HourlyForecastStrip(
+                        hours = bundle.hours.take(4),
+                        timezone = bundle.timezone,
+                        compact = true,
+                        onSelect = { selectedHour = it }
+                    )
                 }
             }
             if (ui.alerts.isNotEmpty()) {
@@ -154,7 +171,7 @@ fun JetztScreen(vm: WetterViewModel) {
     }
     selectedHour?.let { hour ->
         ModalBottomSheet(onDismissRequest = { selectedHour = null }) {
-            HourDetail(hour, unit)
+            HourDetail(hour, unit, bundle?.timezone)
         }
     }
 }

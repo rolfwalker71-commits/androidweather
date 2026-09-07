@@ -77,11 +77,7 @@ fun evaluateNotifications(
         }
         notices += NotifyCandidate("air", "air-${java.time.LocalDate.now()}", 8, "Luft & Pollen", "${bits.joinToString(", ")}.")
     }
-    val localHour = runCatching {
-        java.time.Instant.parse(bundle.current.time).atZone(
-            runCatching { java.time.ZoneId.of(bundle.timezone) }.getOrDefault(java.time.ZoneId.systemDefault())
-        ).hour
-    }.getOrDefault(12)
+    val localHour = parseZoned(bundle.current.time, bundle.timezone)?.hour ?: 12
     if (prefs.dailyBrief && localHour in 6..9) {
         val body = listOfNotNull(insightLine(bundle), clothingLine(bundle)).joinToString(" · ")
         if (body.isNotBlank()) {

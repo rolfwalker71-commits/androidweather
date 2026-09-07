@@ -5,6 +5,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -23,7 +26,7 @@ fun CitySearch(
     results: List<Place>,
     onQuery: (String) -> Unit,
     onSelect: (Place) -> Unit,
-    placeholder: String = "Ort suchen"
+    placeholder: String = "Stadt weltweit suchen"
 ) {
     var query by remember { mutableStateOf("") }
     Column {
@@ -35,6 +38,7 @@ fun CitySearch(
             },
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text(placeholder) },
+            leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
             singleLine = true,
             shape = MaterialTheme.shapes.large
         )

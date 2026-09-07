@@ -22,9 +22,9 @@ import ch.rolf.androidweather.domain.getWmo
 import ch.rolf.androidweather.domain.windDirection
 
 @Composable
-fun HourDetail(hour: HourPoint, unit: WindUnit) {
+fun HourDetail(hour: HourPoint, unit: WindUnit, timeZone: String? = null) {
     Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(formatHourLabel(hour.time), style = MaterialTheme.typography.headlineSmall)
+        Text(formatHourLabel(hour.time, timeZone), style = MaterialTheme.typography.headlineSmall)
         Text(getWmo(hour.code, hour.isDay).label, style = MaterialTheme.typography.titleMedium)
         Text("Temperatur ${formatTemp(hour.temperature)} · gefühlt ${formatTemp(hour.feelsLike)}")
         Text("Wind ${formatWind(hour.wind, unit)}" + (hour.windDir?.let { " ${windDirection(it)}" } ?: ""))
@@ -42,15 +42,15 @@ fun HourDetail(hour: HourPoint, unit: WindUnit) {
 }
 
 @Composable
-fun DayDetail(day: DayPoint, unit: WindUnit) {
+fun DayDetail(day: DayPoint, unit: WindUnit, timeZone: String? = null) {
     Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(formatWeekdayLong(day.date), style = MaterialTheme.typography.headlineSmall)
+        Text(formatWeekdayLong(day.date, timeZone), style = MaterialTheme.typography.headlineSmall)
         Text(getWmo(day.code, true).label, style = MaterialTheme.typography.titleMedium)
         Text("${formatTemp(day.tMax)} / ${formatTemp(day.tMin)}")
         Text("Niederschlag ${formatMm(day.precipMm)}" + (day.precipProb?.let { " · ${formatPercent(it)}" } ?: ""))
         Text("Wind max ${formatWind(day.windMax, unit)}")
         day.uvMax?.let { Text("UV max ${it.toInt()}") }
-        if (day.sunrise.isNotBlank()) Text("Sonnenaufgang ${formatTime(day.sunrise)}")
-        if (day.sunset.isNotBlank()) Text("Sonnenuntergang ${formatTime(day.sunset)}")
+        if (day.sunrise.isNotBlank()) Text("Sonnenaufgang ${formatTime(day.sunrise, timeZone)}")
+        if (day.sunset.isNotBlank()) Text("Sonnenuntergang ${formatTime(day.sunset, timeZone)}")
     }
 }

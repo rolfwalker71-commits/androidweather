@@ -240,6 +240,6 @@ data class RadarFrame(val time: Long, val path: String, val kind: String)
 data class SatelliteFrame(val time: Long, val path: String)
 data class RadarCatalog(val host: String, val frames: List<RadarFrame>, val infrared: List<SatelliteFrame>)
 
-data class ScaleLevel(val label: String, val hint: String, val ratio: Float)
+data class ScaleLevel(val label: String, val hint: String, val ratio: Float, val tone: String = "neutral")
 
 const val MAX_FAVORITES = 8

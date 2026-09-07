@@ -2,6 +2,9 @@ package ch.rolf.androidweather.domain
 
 import java.text.NumberFormat
 import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -14,13 +17,43 @@ private val timeFmt = DateTimeFormatter.ofPattern("HH:mm", de)
 private val weekdayFmt = DateTimeFormatter.ofPattern("EEE", de)
 private val weekdayLongFmt = DateTimeFormatter.ofPattern("EEEE", de)
 private val dayMonthFmt = DateTimeFormatter.ofPattern("d. MMM", de)
+private val localDateTimeMinute = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")
+private val localDateTimeSecond = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
 
-private fun parseZoned(iso: String, zone: String? = null): ZonedDateTime {
-    val instant = runCatching { Instant.parse(iso) }.getOrNull()
-        ?: runCatching { ZonedDateTime.parse(iso).toInstant() }.getOrNull()
-        ?: Instant.now()
-    val z = zone?.let { runCatching { ZoneId.of(it) }.getOrNull() } ?: ZoneId.systemDefault()
-    return instant.atZone(z)
+fun zoneIdOf(timeZone: String?): ZoneId =
+    timeZone?.let { runCatching { ZoneId.of(it) }.getOrNull() } ?: ZoneId.systemDefault()
+
+/**
+ * Parse Open-Meteo / ISO forecast stamps in the place timezone.
+ * Handles `2026-09-07T13:00`, `2026-09-07T13:00:00`, date-only `2026-09-07`, and real instants.
+ * Never falls back to [Instant.now] — a failed parse is null so callers cannot reuse "now" on every row.
+ */
+fun parseForecastInstant(iso: String, timeZone: String? = null): Instant? {
+    if (iso.isBlank()) return null
+    runCatching { Instant.parse(iso) }.getOrNull()?.let { return it }
+    runCatching { OffsetDateTime.parse(iso).toInstant() }.getOrNull()?.let { return it }
+    val zone = zoneIdOf(timeZone)
+    runCatching { ZonedDateTime.parse(iso).toInstant() }.getOrNull()?.let { return it }
+    runCatching { LocalDateTime.parse(iso, localDateTimeSecond).atZone(zone).toInstant() }.getOrNull()?.let { return it }
+    runCatching { LocalDateTime.parse(iso, localDateTimeMinute).atZone(zone).toInstant() }.getOrNull()?.let { return it }
+    runCatching { LocalDateTime.parse(iso).atZone(zone).toInstant() }.getOrNull()?.let { return it }
+    runCatching { LocalDate.parse(iso).atStartOfDay(zone).toInstant() }.getOrNull()?.let { return it }
+    return null
+}
+
+fun parseForecastEpochMilli(iso: String, timeZone: String? = null): Long =
+    parseForecastInstant(iso, timeZone)?.toEpochMilli() ?: 0L
+
+fun parseZoned(iso: String, timeZone: String? = null): ZonedDateTime? {
+    val zone = zoneIdOf(timeZone)
+    val instant = parseForecastInstant(iso, timeZone) ?: return null
+    return instant.atZone(zone)
+}
+
+private fun hourFromIso(iso: String): Int? {
+    val time = iso.substringAfter('T', "")
+    if (time.length >= 2) return time.take(2).toIntOrNull()
+    return null
 }
 
 fun formatTemp(value: Double): String = "${numberDe.format(kotlin.math.round(value).toInt())}°"
@@ -37,18 +70,33 @@ fun formatWind(valueKmh: Double, unit: WindUnit): String =
     if (unit == WindUnit.Ms) "${formatWindValue(valueKmh, unit)} m/s"
     else "${formatWindValue(valueKmh, unit)} km/h"
 
-fun formatTime(iso: String, timeZone: String? = null): String =
-    parseZoned(iso, timeZone).format(timeFmt)
+fun formatTime(iso: String, timeZone: String? = null): String {
+    parseZoned(iso, timeZone)?.let { return it.format(timeFmt) }
+    val hour = hourFromIso(iso) ?: return iso
+    val minute = iso.substringAfter('T', "").drop(3).take(2).toIntOrNull() ?: 0
+    return "%02d:%02d".format(hour, minute)
+}
 
-fun formatWeekday(iso: String): String = parseZoned(iso).format(weekdayFmt)
-fun formatWeekdayLong(iso: String): String = parseZoned(iso).format(weekdayLongFmt)
-fun formatDayMonth(iso: String): String = parseZoned(iso).format(dayMonthFmt)
+fun formatWeekday(iso: String, timeZone: String? = null): String {
+    val raw = parseZoned(iso, timeZone)?.format(weekdayFmt) ?: return iso
+    return raw.trimEnd('.')
+}
 
-fun formatHour(iso: String): String = parseZoned(iso).format(timeFmt)
-fun formatHourLabel(iso: String): String = "${parseZoned(iso).hour.toString().padStart(2, '0')} Uhr"
+fun formatWeekdayLong(iso: String, timeZone: String? = null): String =
+    parseZoned(iso, timeZone)?.format(weekdayLongFmt) ?: iso
+
+fun formatDayMonth(iso: String, timeZone: String? = null): String =
+    parseZoned(iso, timeZone)?.format(dayMonthFmt) ?: iso
+
+fun formatHour(iso: String, timeZone: String? = null): String = formatTime(iso, timeZone)
+
+fun formatHourLabel(iso: String, timeZone: String? = null): String {
+    val hour = parseZoned(iso, timeZone)?.hour ?: hourFromIso(iso) ?: return iso
+    return "${hour.toString().padStart(2, '0')} Uhr"
+}
 
 fun formatUpdatedRelative(iso: String, now: Long = System.currentTimeMillis()): String {
-    val then = runCatching { Instant.parse(iso).toEpochMilli() }.getOrNull() ?: return ""
+    val then = parseForecastEpochMilli(iso).takeIf { it > 0 } ?: return ""
     val minutes = ((now - then) / 60_000).coerceAtLeast(0)
     return when {
         minutes < 1 -> "gerade eben"
@@ -59,6 +107,33 @@ fun formatUpdatedRelative(iso: String, now: Long = System.currentTimeMillis()): 
         minutes < 2880 -> "vor 1 Tag"
         else -> "vor ${minutes / 1440} Tagen"
     }
+}
+
+fun formatUpdatedAt(iso: String, now: Long = System.currentTimeMillis(), timeZone: String? = null): String {
+    val relative = formatUpdatedRelative(iso, now)
+    val exact = formatTime(iso, timeZone)
+    return if (relative.isNotEmpty()) "$relative · $exact" else exact
+}
+
+fun formatRefreshStatus(
+    iso: String,
+    stale: Boolean,
+    now: Long = System.currentTimeMillis(),
+    offline: Boolean = false,
+    timeZone: String? = null
+): String {
+    val whenLabel = formatUpdatedAt(iso, now, timeZone)
+    return when {
+        offline -> "Offline · Stand $whenLabel"
+        stale -> "Zwischengespeichert · $whenLabel"
+        else -> "Aktualisiert $whenLabel"
+    }
+}
+
+fun formatStationLine(station: StationObservation, timeZone: String? = null): String {
+    val parts = mutableListOf("${station.name} ${formatTempExact(station.temperature)}")
+    station.observedAt?.let { parts += "gemessen ${formatTime(it, timeZone)}" }
+    return parts.joinToString(" · ")
 }
 
 fun placeLabel(place: Place): String = listOfNotNull(
@@ -85,11 +160,11 @@ fun windDirection(degrees: Double): String {
 }
 
 fun formatAlertValidity(onset: String?, expires: String?, timeZone: String? = null): String? {
-    val start = onset?.takeIf { runCatching { Instant.parse(it) }.isSuccess }?.let {
-        "${formatDayMonth(it)} ${formatTime(it, timeZone)}"
+    val start = onset?.let { parseForecastInstant(it, timeZone) }?.let {
+        "${formatDayMonth(onset, timeZone)} ${formatTime(onset, timeZone)}"
     }.orEmpty()
-    val end = expires?.takeIf { runCatching { Instant.parse(it) }.isSuccess }?.let {
-        "${formatDayMonth(it)} ${formatTime(it, timeZone)}"
+    val end = expires?.let { parseForecastInstant(it, timeZone) }?.let {
+        "${formatDayMonth(expires, timeZone)} ${formatTime(expires, timeZone)}"
     }.orEmpty()
     return when {
         start.isNotEmpty() && end.isNotEmpty() -> "gültig $start – $end"
