@@ -58,7 +58,7 @@ fun ExtraWideWidgetLayout(snapshot: WidgetSnapshot) {
                     maxLines = 1,
                     style = TextStyle(
                         color = GlanceTheme.colors.onPrimaryContainer,
-                        fontSize = 15.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Medium
                     )
                 )
@@ -67,16 +67,16 @@ fun ExtraWideWidgetLayout(snapshot: WidgetSnapshot) {
                         text = snapshot.temperature,
                         style = TextStyle(
                             color = GlanceTheme.colors.onPrimaryContainer,
-                            fontSize = 34.sp,
+                            fontSize = 32.sp,
                             fontWeight = FontWeight.Bold
                         )
                     )
-                    Text(text = "  ${glyphEmoji(snapshot.glyph)}", style = TextStyle(fontSize = 26.sp))
+                    Text(text = "  ${glyphEmoji(snapshot.glyph)}", style = TextStyle(fontSize = 24.sp))
                 }
                 Text(
                     text = snapshot.condition,
                     maxLines = 1,
-                    style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 12.sp)
+                    style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 10.sp)
                 )
             }
             Column(horizontalAlignment = Alignment.End) {
@@ -86,7 +86,7 @@ fun ExtraWideWidgetLayout(snapshot: WidgetSnapshot) {
                         maxLines = 1,
                         style = TextStyle(
                             color = GlanceTheme.colors.onPrimaryContainer,
-                            fontSize = 14.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Medium
                         )
                     )
@@ -95,7 +95,7 @@ fun ExtraWideWidgetLayout(snapshot: WidgetSnapshot) {
                     Text(
                         text = line,
                         maxLines = 2,
-                        style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 11.sp)
+                        style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 10.sp)
                     )
                 }
             }
@@ -104,7 +104,7 @@ fun ExtraWideWidgetLayout(snapshot: WidgetSnapshot) {
             Text(
                 text = metrics,
                 maxLines = 1,
-                style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 11.sp),
+                style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 10.sp),
                 modifier = GlanceModifier.fillMaxWidth().padding(top = 6.dp)
             )
         }
@@ -122,12 +122,12 @@ fun ExtraWideWidgetLayout(snapshot: WidgetSnapshot) {
                             maxLines = 1,
                             style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 10.sp)
                         )
-                        Text(text = glyphEmoji(hour.glyph), style = TextStyle(fontSize = 16.sp))
+                        Text(text = glyphEmoji(hour.glyph), style = TextStyle(fontSize = 14.sp))
                         Text(
                             text = hour.temperature,
                             style = TextStyle(
                                 color = GlanceTheme.colors.onPrimaryContainer,
-                                fontSize = 13.sp,
+                                fontSize = 11.sp,
                                 fontWeight = FontWeight.Medium
                             )
                         )

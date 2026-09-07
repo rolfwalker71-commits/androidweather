@@ -56,9 +56,9 @@ import ch.rolf.androidweather.domain.windDirection
 
 private val HeroTempStyle = TextStyle(
     fontFamily = FontFamily.SansSerif,
-    fontWeight = FontWeight.ExtraBold,
-    fontSize = 70.sp,
-    lineHeight = 70.sp,
+    fontWeight = FontWeight.Black,
+    fontSize = 68.sp,
+    lineHeight = 68.sp,
     letterSpacing = (-1.5).sp,
     fontFeatureSettings = "tnum"
 )
@@ -66,23 +66,23 @@ private val HeroTempStyle = TextStyle(
 private val HeroConditionStyle = TextStyle(
     fontFamily = FontFamily.SansSerif,
     fontWeight = FontWeight.Medium,
-    fontSize = 19.sp,
-    lineHeight = 24.sp
+    fontSize = 17.sp,
+    lineHeight = 22.sp
 )
 
 private val HeroPlaceStyle = TextStyle(
     fontFamily = FontFamily.SansSerif,
     fontWeight = FontWeight.SemiBold,
-    fontSize = 24.sp,
-    lineHeight = 30.sp,
+    fontSize = 22.sp,
+    lineHeight = 28.sp,
     letterSpacing = (-0.3).sp
 )
 
 private val NowValueStyle = TextStyle(
     fontFamily = FontFamily.SansSerif,
     fontWeight = FontWeight.SemiBold,
-    fontSize = 20.sp,
-    lineHeight = 25.sp,
+    fontSize = 18.sp,
+    lineHeight = 23.sp,
     fontFeatureSettings = "tnum"
 )
 

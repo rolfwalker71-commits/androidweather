@@ -110,7 +110,7 @@ fun WocheScreen(vm: WetterViewModel) {
                         Text(
                             weekday,
                             style = MaterialTheme.typography.titleMedium.copy(
-                                lineHeight = 20.sp,
+                                lineHeight = 18.sp,
                                 hyphens = Hyphens.None,
                                 lineBreak = LineBreak.Simple,
                                 color = mood.content
@@ -122,7 +122,7 @@ fun WocheScreen(vm: WetterViewModel) {
                         Text(
                             formatDayMonth(day.date, bundle.timezone),
                             style = MaterialTheme.typography.bodyMedium.copy(
-                                lineHeight = 18.sp,
+                                lineHeight = 16.sp,
                                 hyphens = Hyphens.None,
                                 lineBreak = LineBreak.Simple,
                                 color = mood.content.copy(alpha = 0.75f)

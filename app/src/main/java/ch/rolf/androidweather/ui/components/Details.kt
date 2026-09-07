@@ -172,8 +172,8 @@ fun HourDetail(
                     formatTemp(hour.temperature),
                     style = MaterialTheme.typography.displaySmall.copy(
                         fontWeight = FontWeight.SemiBold,
-                        fontSize = 36.sp,
-                        lineHeight = 40.sp,
+                        fontSize = 34.sp,
+                        lineHeight = 38.sp,
                         fontFeatureSettings = "tnum"
                     ),
                     color = onHero

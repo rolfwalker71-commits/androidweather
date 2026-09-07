@@ -53,7 +53,7 @@ fun CompactWidgetLayout(snapshot: WidgetSnapshot) {
             maxLines = 2,
             style = TextStyle(
                 color = GlanceTheme.colors.onPrimaryContainer,
-                fontSize = 14.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
             )
         )
@@ -62,23 +62,23 @@ fun CompactWidgetLayout(snapshot: WidgetSnapshot) {
                 text = snapshot.temperature,
                 style = TextStyle(
                     color = GlanceTheme.colors.onPrimaryContainer,
-                    fontSize = 36.sp,
+                    fontSize = 34.sp,
                     fontWeight = FontWeight.Bold
                 )
             )
             Spacer(GlanceModifier.width(8.dp))
-            Text(text = glyphEmoji(snapshot.glyph), style = TextStyle(fontSize = 28.sp))
+            Text(text = glyphEmoji(snapshot.glyph), style = TextStyle(fontSize = 26.sp))
         }
         Text(
             text = snapshot.condition,
             maxLines = 2,
-            style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 13.sp)
+            style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 11.sp)
         )
         snapshot.rainLine?.let { line ->
             Text(
                 text = line,
                 maxLines = 2,
-                style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 12.sp)
+                style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 10.sp)
             )
         }
     }
