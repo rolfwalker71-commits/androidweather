@@ -11,8 +11,11 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -49,15 +52,26 @@ fun WxCard(
 @Composable
 fun InsetPanel(
     modifier: Modifier = Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.surface,
+    contentColor: Color = Color.Unspecified,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    val body: @Composable ColumnScope.() -> Unit = {
+        if (contentColor != Color.Unspecified) {
+            CompositionLocalProvider(LocalContentColor provides contentColor) {
+                content()
+            }
+        } else {
+            content()
+        }
+    }
     Column(
         modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .background(containerColor)
             .padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
-        content = content
+        content = body
     )
 }
