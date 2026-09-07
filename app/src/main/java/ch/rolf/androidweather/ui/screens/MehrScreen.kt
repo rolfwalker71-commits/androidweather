@@ -11,15 +11,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import ch.rolf.androidweather.ui.adaptive.TabletWidth
+import ch.rolf.androidweather.ui.adaptive.isTablet
 import ch.rolf.androidweather.ui.components.MehrMenu
 
 @Composable
 fun MehrScreen(onOpen: (String) -> Unit) {
+    TabletWidth {
     Column(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+            .padding(if (isTablet()) 24.dp else 16.dp)
     ) {
         Text(
             "Mehr",
@@ -27,5 +30,6 @@ fun MehrScreen(onOpen: (String) -> Unit) {
             modifier = Modifier.padding(bottom = 16.dp)
         )
         MehrMenu(onOpen = onOpen)
+    }
     }
 }

@@ -27,10 +27,11 @@ fun CitySearch(
     onQuery: (String) -> Unit,
     onSelect: (Place) -> Unit,
     placeholder: String = "Stadt weltweit suchen",
-    active: Boolean = true
+    active: Boolean = true,
+    modifier: Modifier = Modifier
 ) {
     var query by remember { mutableStateOf("") }
-    Column {
+    Column(modifier) {
         OutlinedTextField(
             value = query,
             onValueChange = {

@@ -1,10 +1,14 @@
 package ch.rolf.androidweather.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -22,10 +26,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.rolf.androidweather.domain.Place
+import ch.rolf.androidweather.domain.WindUnit
 import ch.rolf.androidweather.domain.commuteHint
 import ch.rolf.androidweather.domain.formatTemp
 import ch.rolf.androidweather.domain.samePlace
+import ch.rolf.androidweather.ui.WetterUiState
 import ch.rolf.androidweather.ui.WetterViewModel
+import ch.rolf.androidweather.ui.adaptive.TabletWidth
+import ch.rolf.androidweather.ui.adaptive.isTablet
 import ch.rolf.androidweather.ui.components.ChoicePill
 import ch.rolf.androidweather.ui.components.CitySearch
 import ch.rolf.androidweather.ui.components.CurrentHero
@@ -41,11 +49,13 @@ fun FavoritenScreen(vm: WetterViewModel, onOpenPlace: (Place) -> Unit) {
     val ui by vm.state.collectAsStateWithLifecycle()
     val unit by vm.windUnit.collectAsStateWithLifecycle()
     LaunchedEffect(favs) { vm.loadFavoritesWeather() }
+    val tablet = isTablet()
+    TabletWidth(max = 1200.dp) {
     Column(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+            .padding(if (tablet) 24.dp else 16.dp)
             .padding(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -58,28 +68,54 @@ fun FavoritenScreen(vm: WetterViewModel, onOpenPlace: (Place) -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        } else {
-            favs.forEach { place ->
-                val bundle = ui.favoriteBundles.find { samePlace(it.place, place) }
-                if (bundle != null) {
-                    CurrentHero(
-                        place = place,
-                        bundle = bundle,
-                        stale = false,
-                        offline = false,
-                        favored = true,
-                        windUnit = unit,
-                        notice = null,
-                        onToggleFavorite = { vm.toggleFavorite(place) },
-                        onOpen = { onOpenPlace(place) }
-                    )
-                } else {
-                    WxCard(onClick = { onOpenPlace(place) }) {
-                        Text(place.name, style = MaterialTheme.typography.headlineSmall)
-                        Text("Wetter wird geladen…", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else if (tablet) {
+            favs.chunked(2).forEach { row ->
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    row.forEach { place ->
+                        Box(Modifier.weight(1f)) {
+                            FavoritePlaceCard(place, ui, unit, vm, onOpenPlace)
+                        }
                     }
+                    if (row.size == 1) Spacer(Modifier.weight(1f))
                 }
             }
+        } else {
+            favs.forEach { place ->
+                FavoritePlaceCard(place, ui, unit, vm, onOpenPlace)
+            }
+        }
+    }
+    }
+}
+
+@Composable
+private fun FavoritePlaceCard(
+    place: Place,
+    ui: WetterUiState,
+    unit: WindUnit,
+    vm: WetterViewModel,
+    onOpenPlace: (Place) -> Unit
+) {
+    val bundle = ui.favoriteBundles.find { samePlace(it.place, place) }
+    if (bundle != null) {
+        CurrentHero(
+            place = place,
+            bundle = bundle,
+            stale = false,
+            offline = false,
+            favored = true,
+            windUnit = unit,
+            notice = null,
+            onToggleFavorite = { vm.toggleFavorite(place) },
+            onOpen = { onOpenPlace(place) }
+        )
+    } else {
+        WxCard(onClick = { onOpenPlace(place) }) {
+            Text(place.name, style = MaterialTheme.typography.headlineSmall)
+            Text("Wetter wird geladen…", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -92,11 +128,13 @@ fun VergleichScreen(vm: WetterViewModel) {
     val favs by vm.favorites.collectAsStateWithLifecycle()
     var slot by remember { mutableStateOf("a") }
     LaunchedEffect(Unit) { vm.loadCompare() }
+    val tablet = isTablet()
+    TabletWidth(max = 1200.dp) {
     Column(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+            .padding(if (tablet) 24.dp else 16.dp)
             .padding(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -140,18 +178,43 @@ fun VergleichScreen(vm: WetterViewModel) {
             placeholder = if (slot == "a") "Ort A suchen" else "Ort B suchen",
             active = ui.searchOwner == "compare"
         )
-        PlaceWeatherCard(
-            title = "Ort A",
-            bundle = ui.compareA,
-            emptyText = "Ort wählen — Favorit oder Suche.",
-            windUnit = unit
-        )
-        PlaceWeatherCard(
-            title = "Ort B",
-            bundle = ui.compareB,
-            emptyText = "Ort wählen — Favorit oder Suche.",
-            windUnit = unit
-        )
+        if (tablet) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Box(Modifier.weight(1f)) {
+                    PlaceWeatherCard(
+                        title = "Ort A",
+                        bundle = ui.compareA,
+                        emptyText = "Ort wählen — Favorit oder Suche.",
+                        windUnit = unit
+                    )
+                }
+                Box(Modifier.weight(1f)) {
+                    PlaceWeatherCard(
+                        title = "Ort B",
+                        bundle = ui.compareB,
+                        emptyText = "Ort wählen — Favorit oder Suche.",
+                        windUnit = unit
+                    )
+                }
+            }
+        } else {
+            PlaceWeatherCard(
+                title = "Ort A",
+                bundle = ui.compareA,
+                emptyText = "Ort wählen — Favorit oder Suche.",
+                windUnit = unit
+            )
+            PlaceWeatherCard(
+                title = "Ort B",
+                bundle = ui.compareB,
+                emptyText = "Ort wählen — Favorit oder Suche.",
+                windUnit = unit
+            )
+        }
+    }
     }
 }
 
@@ -164,11 +227,13 @@ fun PendelnScreen(vm: WetterViewModel) {
     val unit by vm.windUnit.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { vm.clearSearch() }
     LaunchedEffect(destPlace) { vm.loadCommute() }
+    val tablet = isTablet()
+    TabletWidth(max = 1200.dp) {
     Column(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+            .padding(if (tablet) 24.dp else 16.dp)
             .padding(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -212,18 +277,44 @@ fun PendelnScreen(vm: WetterViewModel) {
             placeholder = "Zielort suchen",
             active = ui.searchOwner == "commute"
         )
-        PlaceWeatherCard(
-            title = "Start",
-            bundle = ui.bundle,
-            emptyText = "Aktueller Ort wird geladen…",
-            windUnit = unit
-        )
-        PlaceWeatherCard(
-            title = "Ziel",
-            bundle = ui.commuteDest,
-            emptyText = destPlace?.name?.let { "Wetter für $it wird geladen…" } ?: "Ziel wählen — Favorit oder Suche.",
-            windUnit = unit
-        )
+        if (tablet) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Box(Modifier.weight(1f)) {
+                    PlaceWeatherCard(
+                        title = "Start",
+                        bundle = ui.bundle,
+                        emptyText = "Aktueller Ort wird geladen…",
+                        windUnit = unit
+                    )
+                }
+                Box(Modifier.weight(1f)) {
+                    PlaceWeatherCard(
+                        title = "Ziel",
+                        bundle = ui.commuteDest,
+                        emptyText = destPlace?.name?.let { "Wetter für $it wird geladen…" }
+                            ?: "Ziel wählen — Favorit oder Suche.",
+                        windUnit = unit
+                    )
+                }
+            }
+        } else {
+            PlaceWeatherCard(
+                title = "Start",
+                bundle = ui.bundle,
+                emptyText = "Aktueller Ort wird geladen…",
+                windUnit = unit
+            )
+            PlaceWeatherCard(
+                title = "Ziel",
+                bundle = ui.commuteDest,
+                emptyText = destPlace?.name?.let { "Wetter für $it wird geladen…" }
+                    ?: "Ziel wählen — Favorit oder Suche.",
+                windUnit = unit
+            )
+        }
         if (home != null && dest != null) {
             commuteHint(home, dest)?.let { hint ->
                 WxCard {
@@ -233,5 +324,6 @@ fun PendelnScreen(vm: WetterViewModel) {
             }
             SettingsActionPill(label = "Ziel entfernen", onClick = { vm.setCommute(null) })
         }
+    }
     }
 }

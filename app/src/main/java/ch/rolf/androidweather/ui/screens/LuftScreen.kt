@@ -25,6 +25,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.rolf.androidweather.domain.europeanAqi
 import ch.rolf.androidweather.domain.pollenLevel
 import ch.rolf.androidweather.ui.WetterViewModel
+import ch.rolf.androidweather.ui.adaptive.TabletWidth
+import ch.rolf.androidweather.ui.adaptive.isTablet
 import ch.rolf.androidweather.ui.components.AirTrendBars
 import ch.rolf.androidweather.ui.components.GoodBarColor
 import ch.rolf.androidweather.ui.components.WxCard
@@ -35,11 +37,12 @@ fun LuftScreen(vm: WetterViewModel) {
     val ui by vm.state.collectAsStateWithLifecycle()
     val bundle = ui.bundle
     val dark = isSystemInDarkTheme()
+    TabletWidth {
     Column(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(if (isTablet()) 24.dp else 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         if (bundle == null) {
@@ -143,5 +146,6 @@ fun LuftScreen(vm: WetterViewModel) {
                 )
             }
         }
+    }
     }
 }

@@ -3,7 +3,9 @@ package ch.rolf.androidweather.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -30,6 +32,7 @@ import ch.rolf.androidweather.domain.insightLine
 import ch.rolf.androidweather.domain.samePlace
 import ch.rolf.androidweather.domain.snowFrost
 import ch.rolf.androidweather.ui.WetterViewModel
+import ch.rolf.androidweather.ui.adaptive.isTablet
 import ch.rolf.androidweather.ui.components.CurrentHero
 import ch.rolf.androidweather.ui.components.HourDetailSheet
 import ch.rolf.androidweather.ui.components.HourlyForecastStrip
@@ -42,16 +45,73 @@ fun JetztScreen(vm: WetterViewModel) {
     val favorites by vm.favorites.collectAsStateWithLifecycle()
     val bundle = ui.bundle
     var selectedHour by remember { mutableStateOf<HourPoint?>(null) }
+    val tablet = isTablet()
+    val hourSubtitle = bundle?.let {
+        listOfNotNull(insightLine(it), snowFrost(it).snowLabel).joinToString(" · ")
+    }.orEmpty()
     Box(Modifier.fillMaxSize()) {
         Column(
             Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(if (tablet) 24.dp else 16.dp)
                 .padding(bottom = 88.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(if (tablet) 16.dp else 12.dp)
         ) {
-            if (bundle != null) {
+            if (bundle != null && tablet) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Box(Modifier.weight(1.15f)) {
+                        CurrentHero(
+                            place = ui.place,
+                            bundle = bundle,
+                            stale = ui.stale,
+                            offline = ui.error?.startsWith("Offline") == true,
+                            favored = favorites.any { samePlace(it, ui.place) },
+                            windUnit = unit,
+                            notice = ui.notice?.line,
+                            onToggleFavorite = { vm.toggleFavorite(ui.place) }
+                        )
+                    }
+                    Column(
+                        Modifier.weight(0.85f),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        WxCard {
+                            Text("Nächste 4 Stunden", style = MaterialTheme.typography.titleLarge)
+                            if (hourSubtitle.isNotBlank()) {
+                                Text(
+                                    hourSubtitle,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            HourlyForecastStrip(
+                                hours = bundle.hours.take(4),
+                                timezone = bundle.timezone,
+                                compact = true,
+                                modifier = Modifier.padding(top = 12.dp),
+                                onSelect = { selectedHour = it }
+                            )
+                        }
+                        if (ui.alerts.isNotEmpty()) {
+                            WxCard {
+                                Text("Warnungen", style = MaterialTheme.typography.titleLarge)
+                                ui.alerts.forEach { alert ->
+                                    Text(alert.event, style = MaterialTheme.typography.titleMedium)
+                                    if (alert.headline.isNotBlank()) Text(alert.headline)
+                                    formatAlertValidity(alert.onset, alert.expires, bundle.timezone)?.let {
+                                        Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                    alert.area?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (bundle != null) {
                 CurrentHero(
                     place = ui.place,
                     bundle = bundle,
@@ -62,16 +122,6 @@ fun JetztScreen(vm: WetterViewModel) {
                     notice = ui.notice?.line,
                     onToggleFavorite = { vm.toggleFavorite(ui.place) }
                 )
-            } else if (ui.loading) {
-                WxCard { Text("Wetter wird geladen…") }
-            } else {
-                WxCard { Text(ui.error ?: "Keine aktuellen Daten.") }
-            }
-            if (bundle != null) {
-                val hourSubtitle = listOfNotNull(
-                    insightLine(bundle),
-                    snowFrost(bundle).snowLabel
-                ).joinToString(" · ")
                 WxCard {
                     Text("Nächste 4 Stunden", style = MaterialTheme.typography.titleLarge)
                     if (hourSubtitle.isNotBlank()) {
@@ -89,19 +139,23 @@ fun JetztScreen(vm: WetterViewModel) {
                         onSelect = { selectedHour = it }
                     )
                 }
-            }
-            if (ui.alerts.isNotEmpty()) {
-                WxCard {
-                    Text("Warnungen", style = MaterialTheme.typography.titleLarge)
-                    ui.alerts.forEach { alert ->
-                        Text(alert.event, style = MaterialTheme.typography.titleMedium)
-                        if (alert.headline.isNotBlank()) Text(alert.headline)
-                        formatAlertValidity(alert.onset, alert.expires, bundle?.timezone)?.let {
-                            Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (ui.alerts.isNotEmpty()) {
+                    WxCard {
+                        Text("Warnungen", style = MaterialTheme.typography.titleLarge)
+                        ui.alerts.forEach { alert ->
+                            Text(alert.event, style = MaterialTheme.typography.titleMedium)
+                            if (alert.headline.isNotBlank()) Text(alert.headline)
+                            formatAlertValidity(alert.onset, alert.expires, bundle.timezone)?.let {
+                                Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                            alert.area?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
                         }
-                        alert.area?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
                     }
                 }
+            } else if (ui.loading) {
+                WxCard { Text("Wetter wird geladen…") }
+            } else {
+                WxCard { Text(ui.error ?: "Keine aktuellen Daten.") }
             }
         }
         FloatingActionButton(

@@ -36,6 +36,8 @@ import ch.rolf.androidweather.domain.snowFrost
 import ch.rolf.androidweather.domain.windDirection
 import ch.rolf.androidweather.domain.windHourBars
 import ch.rolf.androidweather.ui.WetterViewModel
+import ch.rolf.androidweather.ui.adaptive.TabletWidth
+import ch.rolf.androidweather.ui.adaptive.isTablet
 import ch.rolf.androidweather.ui.components.TopicHero
 import ch.rolf.androidweather.ui.components.TopicInset
 import ch.rolf.androidweather.ui.components.TopicMood
@@ -378,14 +380,16 @@ object TopicScreens {
 
 @Composable
 private fun TopicColumn(content: @Composable () -> Unit) {
-    Column(
-        Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
-            .padding(bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        content()
+    TabletWidth {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(if (isTablet()) 24.dp else 16.dp)
+                .padding(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            content()
+        }
     }
 }

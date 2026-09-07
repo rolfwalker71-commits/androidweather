@@ -32,6 +32,8 @@ import ch.rolf.androidweather.domain.ThemePreference
 import ch.rolf.androidweather.domain.WindUnit
 import ch.rolf.androidweather.domain.placeShort
 import ch.rolf.androidweather.ui.WetterViewModel
+import ch.rolf.androidweather.ui.adaptive.TabletWidth
+import ch.rolf.androidweather.ui.adaptive.isTablet
 import ch.rolf.androidweather.ui.components.ChoicePill
 import ch.rolf.androidweather.ui.components.CitySearch
 import ch.rolf.androidweather.ui.components.SettingsActionPill
@@ -51,11 +53,12 @@ fun EinstellungenScreen(vm: WetterViewModel) {
     val notify by vm.notifyPrefs.collectAsStateWithLifecycle()
     val ongoing by vm.ongoing.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    TabletWidth {
     Column(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(if (isTablet()) 24.dp else 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
@@ -196,5 +199,6 @@ fun EinstellungenScreen(vm: WetterViewModel) {
                 )
             }
         }
+    }
     }
 }

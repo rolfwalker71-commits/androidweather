@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.MyLocation
@@ -20,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import ch.rolf.androidweather.domain.Place
 import ch.rolf.androidweather.domain.formatRefreshStatus
 import ch.rolf.androidweather.ui.WetterUiState
+import ch.rolf.androidweather.ui.adaptive.isTablet
 
 @Composable
 fun AppHeader(
@@ -69,7 +71,8 @@ fun AppHeader(
                 onQuery = onSearch,
                 onSelect = onSelectPlace,
                 placeholder = "Stadt weltweit suchen",
-                active = searchActive
+                active = searchActive,
+                modifier = if (isTablet()) Modifier.widthIn(max = 560.dp) else Modifier.fillMaxWidth()
             )
         }
     }

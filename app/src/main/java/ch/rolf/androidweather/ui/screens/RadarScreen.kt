@@ -29,6 +29,7 @@ import ch.rolf.androidweather.data.ESRI_BASEMAP
 import ch.rolf.androidweather.data.infraredTileUrl
 import ch.rolf.androidweather.data.radarTileUrl
 import ch.rolf.androidweather.ui.WetterViewModel
+import ch.rolf.androidweather.ui.adaptive.isTablet
 import kotlinx.coroutines.delay
 import org.osmdroid.tileprovider.tilesource.OnlineTileSourceBase
 import org.osmdroid.util.GeoPoint
@@ -65,7 +66,9 @@ fun RadarScreen(vm: WetterViewModel) {
         if (frames.isNotEmpty() && frameIndex >= frames.size) frameIndex = frames.lastIndex
         val frame = frames.getOrNull(frameIndex)
         AndroidView(
-            modifier = Modifier.fillMaxWidth().height(360.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(if (isTablet()) Modifier.weight(1f) else Modifier.height(360.dp)),
             factory = { ctx ->
                 MapView(ctx).apply {
                     setMultiTouchControls(true)

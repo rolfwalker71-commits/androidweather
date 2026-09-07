@@ -3,7 +3,9 @@ package ch.rolf.androidweather.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,6 +31,9 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
@@ -50,6 +55,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import ch.rolf.androidweather.ui.adaptive.isTablet
 import ch.rolf.androidweather.ui.components.AppHeader
 import ch.rolf.androidweather.ui.components.MehrMenu
 import ch.rolf.androidweather.ui.screens.EinstellungenScreen
@@ -97,6 +103,47 @@ fun WetterApp(vm: WetterViewModel = viewModel()) {
             scope.launch { drawerState.close() }
             nav.navigate(route)
         }
+        fun goTab(route: String) {
+            nav.navigate(route) {
+                popUpTo(nav.graph.findStartDestination().id) { saveState = false }
+                launchSingleTop = true
+                restoreState = false
+            }
+        }
+        fun tabSelected(tab: Tab): Boolean =
+            current?.hierarchy?.any { dest ->
+                dest.route == tab.route || (tab.route == "mehr" && dest.route in mehrRoutes && dest.route !in tabs.map { it.route })
+            } == true || (tab.route == "mehr" && current?.route in mehrRoutes && current?.route != "jetzt" && current?.route != "verlauf" && current?.route != "woche" && current?.route != "luft")
+
+        @Composable
+        fun AppNavHost(modifier: Modifier) {
+            NavHost(
+                navController = nav,
+                startDestination = "jetzt",
+                modifier = modifier
+            ) {
+                composable("jetzt") { JetztScreen(vm) }
+                composable("verlauf") { VerlaufScreen(vm) }
+                composable("woche") { WocheScreen(vm) }
+                composable("luft") { LuftScreen(vm) }
+                composable("mehr") { MehrScreen(onOpen = { nav.navigate(it) }) }
+                composable("radar") { RadarScreen(vm) }
+                composable("favoriten") {
+                    FavoritenScreen(vm) { place ->
+                        vm.selectPlace(place)
+                        goTab("jetzt")
+                    }
+                }
+                composable("vergleich") { VergleichScreen(vm) }
+                composable("pendeln") { PendelnScreen(vm) }
+                composable("einstellungen") { EinstellungenScreen(vm) }
+                composable("wind") { TopicScreens.Wind(vm) }
+                composable("berge") { TopicScreens.Berge(vm) }
+                composable("seen") { TopicScreens.Seen(vm) }
+                composable("draussen") { TopicScreens.Draussen(vm) }
+            }
+        }
+
         ModalNavigationDrawer(
             drawerState = drawerState,
             drawerContent = {
@@ -120,6 +167,47 @@ fun WetterApp(vm: WetterViewModel = viewModel()) {
                 }
             }
         ) {
+            val tablet = isTablet()
+            if (tablet) {
+                Row(
+                    Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background)
+                ) {
+                    NavigationRail(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .statusBarsPadding()
+                            .navigationBarsPadding(),
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    ) {
+                        tabs.forEach { tab ->
+                            RailItem(tab, tabSelected(tab)) { goTab(tab.route) }
+                        }
+                    }
+                    Column(Modifier.weight(1f).fillMaxHeight()) {
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.surfaceContainer)
+                                .statusBarsPadding()
+                                .padding(horizontal = 24.dp, vertical = 12.dp)
+                        ) {
+                            AppHeader(
+                                ui = ui,
+                                onMenu = { scope.launch { drawerState.open() } },
+                                onLocate = vm::locate,
+                                onRefresh = { vm.refresh() },
+                                onSearch = { vm.search(it, "header") },
+                                onSelectPlace = vm::selectPlace,
+                                showSearch = route !in ownSearchRoutes,
+                                searchActive = ui.searchOwner == "header" || ui.searchOwner.isEmpty()
+                            )
+                        }
+                        AppNavHost(Modifier.fillMaxSize().weight(1f))
+                    }
+                }
+            } else {
             Scaffold(
                 containerColor = MaterialTheme.colorScheme.background,
                 topBar = {
@@ -149,51 +237,17 @@ fun WetterApp(vm: WetterViewModel = viewModel()) {
                         tonalElevation = 0.dp
                     ) {
                         tabs.forEach { tab ->
-                            val selected = current?.hierarchy?.any { dest ->
-                                dest.route == tab.route || (tab.route == "mehr" && dest.route in mehrRoutes && dest.route !in tabs.map { it.route })
-                            } == true || (tab.route == "mehr" && current?.route in mehrRoutes && current?.route != "jetzt" && current?.route != "verlauf" && current?.route != "woche" && current?.route != "luft")
-                            TabItem(tab, selected) {
-                                nav.navigate(tab.route) {
-                                    popUpTo(nav.graph.findStartDestination().id) { saveState = false }
-                                    launchSingleTop = true
-                                    restoreState = false
-                                }
-                            }
+                            TabItem(tab, tabSelected(tab)) { goTab(tab.route) }
                         }
                     }
                 }
             ) { padding ->
-                NavHost(
-                    navController = nav,
-                    startDestination = "jetzt",
-                    modifier = Modifier
+                AppNavHost(
+                    Modifier
                         .fillMaxSize()
                         .padding(padding)
-                ) {
-                    composable("jetzt") { JetztScreen(vm) }
-                    composable("verlauf") { VerlaufScreen(vm) }
-                    composable("woche") { WocheScreen(vm) }
-                    composable("luft") { LuftScreen(vm) }
-                    composable("mehr") { MehrScreen(onOpen = { nav.navigate(it) }) }
-                    composable("radar") { RadarScreen(vm) }
-                    composable("favoriten") {
-                        FavoritenScreen(vm) { place ->
-                            vm.selectPlace(place)
-                            nav.navigate("jetzt") {
-                                popUpTo(nav.graph.findStartDestination().id) { saveState = false }
-                                launchSingleTop = true
-                                restoreState = false
-                            }
-                        }
-                    }
-                    composable("vergleich") { VergleichScreen(vm) }
-                    composable("pendeln") { PendelnScreen(vm) }
-                    composable("einstellungen") { EinstellungenScreen(vm) }
-                    composable("wind") { TopicScreens.Wind(vm) }
-                    composable("berge") { TopicScreens.Berge(vm) }
-                    composable("seen") { TopicScreens.Seen(vm) }
-                    composable("draussen") { TopicScreens.Draussen(vm) }
-                }
+                )
+            }
             }
         }
     }
@@ -230,5 +284,38 @@ private fun RowScope.TabItem(tab: Tab, selected: Boolean, onClick: () -> Unit) {
             )
         },
         colors = NavigationBarItemDefaults.colors(indicatorColor = Color.Transparent)
+    )
+}
+
+@Composable
+private fun RailItem(tab: Tab, selected: Boolean, onClick: () -> Unit) {
+    NavigationRailItem(
+        selected = selected,
+        onClick = onClick,
+        icon = {
+            Box(
+                modifier = Modifier
+                    .width(56.dp)
+                    .height(32.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    tab.icon,
+                    contentDescription = tab.label,
+                    modifier = Modifier.size(24.dp),
+                    tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        },
+        label = {
+            Text(
+                tab.label,
+                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelMedium
+            )
+        },
+        colors = NavigationRailItemDefaults.colors(indicatorColor = Color.Transparent)
     )
 }

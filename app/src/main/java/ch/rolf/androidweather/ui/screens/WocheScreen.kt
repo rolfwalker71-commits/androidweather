@@ -42,6 +42,8 @@ import ch.rolf.androidweather.domain.formatTemp
 import ch.rolf.androidweather.domain.formatWeekday
 import ch.rolf.androidweather.domain.weatherMood
 import ch.rolf.androidweather.ui.WetterViewModel
+import ch.rolf.androidweather.ui.adaptive.TabletWidth
+import ch.rolf.androidweather.ui.adaptive.isTablet
 import ch.rolf.androidweather.ui.components.DayDetail
 import ch.rolf.androidweather.ui.components.HourDetailSheet
 import ch.rolf.androidweather.ui.components.TempRangeBar
@@ -59,11 +61,12 @@ fun WocheScreen(vm: WetterViewModel) {
     var selectedHour by remember { mutableStateOf<HourPoint?>(null) }
     val dark = isSystemInDarkTheme()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    TabletWidth {
     Column(
         Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(if (isTablet()) 24.dp else 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         if (bundle == null) {
@@ -164,6 +167,7 @@ fun WocheScreen(vm: WetterViewModel) {
                 }
             }
         }
+    }
     }
     selected?.let { day ->
         bundle?.let { data ->
