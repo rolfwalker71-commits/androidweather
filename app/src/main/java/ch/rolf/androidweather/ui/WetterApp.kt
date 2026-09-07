@@ -167,7 +167,16 @@ fun WetterApp(vm: WetterViewModel = viewModel()) {
                     composable("luft") { LuftScreen(vm) }
                     composable("mehr") { MehrScreen(onOpen = { nav.navigate(it) }) }
                     composable("radar") { RadarScreen(vm) }
-                    composable("favoriten") { FavoritenScreen(vm) }
+                    composable("favoriten") {
+                        FavoritenScreen(vm) { place ->
+                            vm.selectPlace(place)
+                            nav.navigate("jetzt") {
+                                popUpTo(nav.graph.findStartDestination().id) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    }
                     composable("vergleich") { VergleichScreen(vm) }
                     composable("pendeln") { PendelnScreen(vm) }
                     composable("einstellungen") { EinstellungenScreen(vm) }

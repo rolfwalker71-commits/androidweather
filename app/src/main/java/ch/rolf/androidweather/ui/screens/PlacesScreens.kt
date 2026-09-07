@@ -20,39 +20,61 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import ch.rolf.androidweather.domain.Place
 import ch.rolf.androidweather.domain.commuteHint
 import ch.rolf.androidweather.domain.formatTemp
 import ch.rolf.androidweather.domain.getWmo
 import ch.rolf.androidweather.domain.placeShort
+import ch.rolf.androidweather.domain.samePlace
 import ch.rolf.androidweather.ui.WetterViewModel
 import ch.rolf.androidweather.ui.components.CitySearch
+import ch.rolf.androidweather.ui.components.CurrentHero
 import ch.rolf.androidweather.ui.components.WxCard
-import ch.rolf.androidweather.widget.glyphEmoji
 
 @Composable
-fun FavoritenScreen(vm: WetterViewModel) {
+fun FavoritenScreen(vm: WetterViewModel, onOpenPlace: (Place) -> Unit) {
     val favs by vm.favorites.collectAsStateWithLifecycle()
     val ui by vm.state.collectAsStateWithLifecycle()
+    val unit by vm.windUnit.collectAsStateWithLifecycle()
     LaunchedEffect(favs) { vm.loadFavoritesWeather() }
     Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp)
+            .padding(bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text("Favoriten", style = MaterialTheme.typography.headlineSmall)
-        Text("Bis zu 8 Orte. Tippe für Jetzt-Wetter.", color = MaterialTheme.colorScheme.onSurfaceVariant)
-        if (favs.isEmpty()) Text("Noch keine Favoriten — Stern auf Jetzt setzen.")
-        (ui.favoriteBundles.ifEmpty { null })?.forEach { bundle ->
-            WxCard(onClick = { vm.selectPlace(bundle.place) }) {
-                Text(placeShort(bundle.place), style = MaterialTheme.typography.titleLarge)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(formatTemp(bundle.current.temperature_2m), style = MaterialTheme.typography.headlineMedium)
-                    Text(glyphEmoji(getWmo(bundle.current.weather_code, bundle.current.is_day == 1).glyph))
-                }
-                Text(getWmo(bundle.current.weather_code, bundle.current.is_day == 1).label)
+        if (favs.isEmpty()) {
+            WxCard {
+                Text("Keine Favoriten", style = MaterialTheme.typography.titleLarge)
+                Text(
+                    "Noch keine Orte gespeichert. Öffne Jetzt und tippe auf den Stern unten rechts in der Hauptkarte.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
-        } ?: favs.forEach { place ->
-            WxCard(onClick = { vm.selectPlace(place) }) {
-                Text(placeShort(place), style = MaterialTheme.typography.titleLarge)
+        } else {
+            favs.forEach { place ->
+                val bundle = ui.favoriteBundles.find { samePlace(it.place, place) }
+                if (bundle != null) {
+                    CurrentHero(
+                        place = place,
+                        bundle = bundle,
+                        stale = false,
+                        offline = false,
+                        favored = true,
+                        windUnit = unit,
+                        notice = null,
+                        onToggleFavorite = { vm.toggleFavorite(place) },
+                        onOpen = { onOpenPlace(place) }
+                    )
+                } else {
+                    WxCard(onClick = { onOpenPlace(place) }) {
+                        Text(place.name, style = MaterialTheme.typography.headlineSmall)
+                        Text("Wetter wird geladen…", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
             }
         }
     }

@@ -3,7 +3,6 @@ package ch.rolf.androidweather.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -12,12 +11,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MyLocation
-import androidx.compose.material.icons.outlined.Star
-import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -31,30 +27,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.rolf.androidweather.domain.HourPoint
-import ch.rolf.androidweather.domain.clothingLine
 import ch.rolf.androidweather.domain.formatAlertValidity
-import ch.rolf.androidweather.domain.formatHpa
-import ch.rolf.androidweather.domain.formatPercent
-import ch.rolf.androidweather.domain.formatStationLine
-import ch.rolf.androidweather.domain.formatTemp
-import ch.rolf.androidweather.domain.formatTime
-import ch.rolf.androidweather.domain.formatWind
-import ch.rolf.androidweather.domain.getWmo
 import ch.rolf.androidweather.domain.insightLine
-import ch.rolf.androidweather.domain.nextPrecipLine
-import ch.rolf.androidweather.domain.placeLabel
-import ch.rolf.androidweather.domain.windDirection
+import ch.rolf.androidweather.domain.samePlace
+import ch.rolf.androidweather.domain.snowFrost
 import ch.rolf.androidweather.ui.WetterViewModel
+import ch.rolf.androidweather.ui.components.CurrentHero
 import ch.rolf.androidweather.ui.components.HourDetail
 import ch.rolf.androidweather.ui.components.HourlyForecastStrip
 import ch.rolf.androidweather.ui.components.WxCard
-import ch.rolf.androidweather.widget.glyphEmoji
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun JetztScreen(vm: WetterViewModel) {
     val ui by vm.state.collectAsStateWithLifecycle()
     val unit by vm.windUnit.collectAsStateWithLifecycle()
+    val favorites by vm.favorites.collectAsStateWithLifecycle()
     val bundle = ui.bundle
     var selectedHour by remember { mutableStateOf<HourPoint?>(null) }
     Box(Modifier.fillMaxSize()) {
@@ -66,79 +54,41 @@ fun JetztScreen(vm: WetterViewModel) {
                 .padding(bottom = 88.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            WxCard {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(ui.place.name, style = MaterialTheme.typography.headlineSmall)
-                        Text(
-                            placeLabel(ui.place),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    IconButton(onClick = { vm.toggleFavorite(ui.place) }, modifier = Modifier.size(48.dp)) {
-                        Icon(
-                            if (vm.isFavorite(ui.place)) Icons.Outlined.Star else Icons.Outlined.StarBorder,
-                            contentDescription = "Favorit"
-                        )
-                    }
-                }
-                if (bundle != null) {
-                    val wmo = getWmo(bundle.current.weather_code, bundle.current.is_day == 1)
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(formatTemp(bundle.current.temperature_2m), style = MaterialTheme.typography.displayMedium)
-                        Text(glyphEmoji(wmo.glyph), style = MaterialTheme.typography.displaySmall)
-                    }
-                    Text(wmo.label, style = MaterialTheme.typography.titleMedium)
-                    Text("Gefühlt ${formatTemp(bundle.current.apparent_temperature)}")
-                    bundle.station?.let {
-                        Text(
-                            formatStationLine(it, bundle.timezone),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    nextPrecipLine(bundle)?.let { Text(it, color = MaterialTheme.colorScheme.primary) }
-                    insightLine(bundle)?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
-                    clothingLine(bundle)?.let { Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-                    ui.notice?.let { Text(it.line, color = MaterialTheme.colorScheme.primary) }
-                    Text(
-                        "Wind ${formatWind(bundle.current.wind_speed_10m, unit)} aus ${windDirection(bundle.current.wind_direction_10m)}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    val metrics = buildList {
-                        add("Feuchte ${formatPercent(bundle.current.relative_humidity_2m)}")
-                        add("Druck ${formatHpa(bundle.current.pressure_msl)}")
-                        add("Bewölkung ${formatPercent(bundle.current.cloud_cover)}")
-                    }
-                    Text(
-                        metrics.joinToString(" · "),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    bundle.days.firstOrNull()?.let { today ->
-                        val sun = if (today.sunrise.isNotBlank() && today.sunset.isNotBlank()) {
-                            " · Sonne ${formatTime(today.sunrise, bundle.timezone)} – ${formatTime(today.sunset, bundle.timezone)}"
-                        } else ""
-                        Text(
-                            "Heute ${formatTemp(today.tMin)} bis ${formatTemp(today.tMax)}$sun",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                } else if (ui.loading) {
-                    Text("Wetter wird geladen…")
-                } else {
-                    Text(ui.error ?: "Keine aktuellen Daten.")
-                }
+            if (bundle != null) {
+                CurrentHero(
+                    place = ui.place,
+                    bundle = bundle,
+                    stale = ui.stale,
+                    offline = ui.error?.startsWith("Offline") == true,
+                    favored = favorites.any { samePlace(it, ui.place) },
+                    windUnit = unit,
+                    notice = ui.notice?.line,
+                    onToggleFavorite = { vm.toggleFavorite(ui.place) }
+                )
+            } else if (ui.loading) {
+                WxCard { Text("Wetter wird geladen…") }
+            } else {
+                WxCard { Text(ui.error ?: "Keine aktuellen Daten.") }
             }
             if (bundle != null) {
+                val hourSubtitle = listOfNotNull(
+                    insightLine(bundle),
+                    snowFrost(bundle).snowLabel
+                ).joinToString(" · ")
                 WxCard {
                     Text("Nächste 4 Stunden", style = MaterialTheme.typography.titleLarge)
+                    if (hourSubtitle.isNotBlank()) {
+                        Text(
+                            hourSubtitle,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                     HourlyForecastStrip(
                         hours = bundle.hours.take(4),
                         timezone = bundle.timezone,
                         compact = true,
+                        modifier = Modifier.padding(top = 12.dp),
                         onSelect = { selectedHour = it }
                     )
                 }

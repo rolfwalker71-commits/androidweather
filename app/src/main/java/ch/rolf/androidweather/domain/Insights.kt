@@ -65,6 +65,62 @@ fun precipOnsetTime(bundle: WeatherBundle): String? {
     }
 }
 
+data class PrecipNowSummary(
+    val mm: Double,
+    val headline: String,
+    val detail: String?
+)
+
+fun precipNowSummary(bundle: WeatherBundle): PrecipNowSummary {
+    val mm = bundle.current.precipitation
+    val firstMinute = bundle.minutes.firstOrNull()
+    val minuteMm = firstMinute?.precipMm
+    val minuteWet = minuteMm != null && minuteMm >= WET_MINUTE_MM
+    val hourWet = (bundle.hours.firstOrNull()?.precipMm ?: 0.0) >= WET_HOUR_MM
+    val rainingNow = mm >= WET_MINUTE_MM || minuteWet || hourWet
+    if (rainingNow) {
+        val detail = when {
+            mm >= WET_MINUTE_MM -> null
+            minuteWet && firstMinute != null && minuteMm != null ->
+                "15-Min ${formatTime(firstMinute.time, bundle.timezone)} · ${formatMm(minuteMm)}"
+            else -> nextPrecipLine(bundle)
+        }
+        return PrecipNowSummary(
+            mm = mm,
+            headline = if (mm >= WET_MINUTE_MM) formatMm(mm) else "Niederschlag jetzt",
+            detail = detail
+        )
+    }
+    val onset = precipOnsetTime(bundle)
+    return PrecipNowSummary(
+        mm = mm,
+        headline = "trocken",
+        detail = onset?.let { "Niederschlag ab ${formatTime(it, bundle.timezone)}" }
+    )
+}
+
+data class SnowFrost(
+    val freezingLevel: Double?,
+    val frost: Boolean,
+    val frostLabel: String?,
+    val snowLabel: String?
+)
+
+fun snowFrost(bundle: WeatherBundle): SnowFrost {
+    val freezingLevel = bundle.hours.firstOrNull()?.freezingLevel
+    val tonight = bundle.days.firstOrNull()
+    val frost = tonight != null && tonight.tMin <= 1.0
+    return SnowFrost(
+        freezingLevel = freezingLevel,
+        frost = frost,
+        frostLabel = null,
+        snowLabel = freezingLevel?.let {
+            val rounded = (kotlin.math.round(it / 50.0) * 50.0).toInt()
+            "Nullgradgrenze $rounded m"
+        }
+    )
+}
+
 fun clothingLine(bundle: WeatherBundle): String? {
     val comfort = comfortAdvice(bundle) ?: return null
     val nowMm = bundle.hours.firstOrNull()?.precipMm ?: 0.0
