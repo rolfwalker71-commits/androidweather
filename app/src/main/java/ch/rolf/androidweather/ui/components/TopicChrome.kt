@@ -54,8 +54,21 @@ fun weatherIllustrationRes(mood: String): Int = when (mood) {
 fun HeroIllustration(
     @DrawableRes res: Int,
     dark: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    night: Boolean = false
 ) {
+    val artAlpha = when {
+        night && dark -> 0.10f
+        night -> 0.12f
+        dark -> 0.18f
+        else -> 0.16f
+    }
+    val scrimAlpha = when {
+        night && dark -> 0.46f
+        night -> 0.22f
+        dark -> 0.32f
+        else -> 0.10f
+    }
     Box(modifier.fillMaxSize()) {
         Image(
             painter = painterResource(res),
@@ -63,14 +76,14 @@ fun HeroIllustration(
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxSize()
-                .graphicsLayer { alpha = if (dark) 0.22f else 0.16f }
+                .graphicsLayer { alpha = artAlpha }
         )
         Box(
             Modifier
                 .fillMaxSize()
                 .background(
                     Brush.horizontalGradient(
-                        0f to Color.Black.copy(alpha = if (dark) 0.28f else 0.10f),
+                        0f to Color.Black.copy(alpha = scrimAlpha),
                         0.58f to Color.Transparent
                     )
                 )

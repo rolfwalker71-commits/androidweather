@@ -46,7 +46,8 @@ data class WidgetSnapshot(
     val updatedAt: String? = null,
     val mood: String = "cloud",
     val feelsLike: String? = null,
-    val sunLine: String? = null
+    val sunrise: String? = null,
+    val sunset: String? = null
 )
 
 object WidgetPrefs {
@@ -119,8 +120,7 @@ fun snapshotFrom(
         updatedAt = formatWidgetUpdated(bundle.fetchedAt, bundle.timezone),
         mood = weatherMood(current.weather_code, current.is_day == 1),
         feelsLike = "Gefühlt ${formatTemp(current.apparent_temperature)}",
-        sunLine = today?.takeIf { it.sunrise.isNotBlank() && it.sunset.isNotBlank() }?.let {
-            "Sonne ${formatTime(it.sunrise, bundle.timezone)}–${formatTime(it.sunset, bundle.timezone)}"
-        }
+        sunrise = today?.sunrise?.takeIf { it.isNotBlank() }?.let { formatTime(it, bundle.timezone) },
+        sunset = today?.sunset?.takeIf { it.isNotBlank() }?.let { formatTime(it, bundle.timezone) }
     )
 }

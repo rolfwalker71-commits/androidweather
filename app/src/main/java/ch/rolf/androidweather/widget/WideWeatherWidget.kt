@@ -17,6 +17,7 @@ import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
+import androidx.glance.layout.padding
 import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
@@ -37,7 +38,7 @@ class WideWeatherWidget : GlanceAppWidget() {
 fun WideWidgetLayout(snapshot: WidgetSnapshot) {
     val hours = snapshot.hours.take(4)
     val on = widgetOnColor(snapshot.mood)
-    WidgetHeroFrame(mood = snapshot.mood) {
+    WidgetHeroFrame(mood = snapshot.mood, paddingBottom = 18.dp) {
         Row(
             modifier = GlanceModifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -87,7 +88,7 @@ fun WideWidgetLayout(snapshot: WidgetSnapshot) {
         }
         Spacer(GlanceModifier.defaultWeight())
         if (hours.isNotEmpty()) {
-            Row(modifier = GlanceModifier.fillMaxWidth()) {
+            Row(modifier = GlanceModifier.fillMaxWidth().padding(bottom = 2.dp)) {
                 hours.forEach { hour ->
                     Column(
                         modifier = GlanceModifier.defaultWeight(),

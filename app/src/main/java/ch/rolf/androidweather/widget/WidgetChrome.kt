@@ -58,6 +58,7 @@ private fun moodGradientBitmap(mood: String, dark: Boolean): Bitmap {
 fun WidgetHeroFrame(
     mood: String,
     padding: Dp = 16.dp,
+    paddingBottom: Dp = padding,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val context = LocalContext.current
@@ -69,7 +70,7 @@ fun WidgetHeroFrame(
             .fillMaxSize()
             .background(background)
             .clickable(actionStartActivity<MainActivity>())
-            .padding(padding)
+            .padding(start = padding, top = padding, end = padding, bottom = paddingBottom)
     ) {
         content()
     }

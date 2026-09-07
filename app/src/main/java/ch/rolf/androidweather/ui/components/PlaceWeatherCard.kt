@@ -71,6 +71,7 @@ fun PlaceWeatherCard(
             HeroIllustration(
                 res = weatherIllustrationRes(mood),
                 dark = dark,
+                night = mood == "night",
                 modifier = Modifier.matchParentSize()
             )
             Column(

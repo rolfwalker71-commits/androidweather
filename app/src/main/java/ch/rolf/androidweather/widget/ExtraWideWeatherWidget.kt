@@ -4,9 +4,12 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.Image
+import androidx.glance.ImageProvider
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
@@ -18,8 +21,10 @@ import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.layout.size
 import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
+import ch.rolf.androidweather.R
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 
@@ -38,7 +43,7 @@ class ExtraWideWeatherWidget : GlanceAppWidget() {
 fun ExtraWideWidgetLayout(snapshot: WidgetSnapshot) {
     val hours = snapshot.hours.take(5)
     val on = widgetOnColor(snapshot.mood)
-    WidgetHeroFrame(mood = snapshot.mood, padding = 12.dp) {
+    WidgetHeroFrame(mood = snapshot.mood, padding = 12.dp, paddingBottom = 16.dp) {
         Row(
             modifier = GlanceModifier.fillMaxWidth(),
             verticalAlignment = Alignment.Top
@@ -108,12 +113,31 @@ fun ExtraWideWidgetLayout(snapshot: WidgetSnapshot) {
                         style = TextStyle(color = on, fontSize = 13.sp)
                     )
                 }
-                snapshot.sunLine?.let { sun ->
-                    Text(
-                        text = sun,
-                        maxLines = 1,
-                        style = TextStyle(color = on, fontSize = 12.sp)
-                    )
+                if (snapshot.sunrise != null && snapshot.sunset != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            provider = ImageProvider(R.drawable.ic_widget_sunrise),
+                            contentDescription = "Sonnenaufgang",
+                            modifier = GlanceModifier.size(13.dp),
+                            colorFilter = ColorFilter.tint(on)
+                        )
+                        Text(
+                            text = " ${snapshot.sunrise} – ",
+                            maxLines = 1,
+                            style = TextStyle(color = on, fontSize = 12.sp)
+                        )
+                        Image(
+                            provider = ImageProvider(R.drawable.ic_widget_sunset),
+                            contentDescription = "Sonnenuntergang",
+                            modifier = GlanceModifier.size(13.dp),
+                            colorFilter = ColorFilter.tint(on)
+                        )
+                        Text(
+                            text = " ${snapshot.sunset}",
+                            maxLines = 1,
+                            style = TextStyle(color = on, fontSize = 12.sp)
+                        )
+                    }
                 }
                 snapshot.rainLine?.let { line ->
                     Text(
@@ -126,7 +150,7 @@ fun ExtraWideWidgetLayout(snapshot: WidgetSnapshot) {
         }
         if (hours.isNotEmpty()) {
             Row(
-                modifier = GlanceModifier.fillMaxWidth().padding(top = 8.dp)
+                modifier = GlanceModifier.fillMaxWidth().padding(top = 6.dp, bottom = 4.dp)
             ) {
                 hours.forEach { hour ->
                     Column(
