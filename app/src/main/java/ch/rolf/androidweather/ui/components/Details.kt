@@ -60,7 +60,6 @@ import ch.rolf.androidweather.domain.parseForecastEpochMilli
 import ch.rolf.androidweather.domain.uvLevel
 import ch.rolf.androidweather.domain.weatherMood
 import ch.rolf.androidweather.domain.windDirection
-import ch.rolf.androidweather.widget.glyphEmoji
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -325,7 +324,7 @@ fun DayDetail(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(glyphEmoji(wmo.glyph), style = MaterialTheme.typography.displaySmall)
+            WeatherIcon(code = day.code, isDay = true, size = 48.dp, contentDescription = wmo.label)
             Text(
                 "${formatTemp(day.tMin)} / ${formatTemp(day.tMax)}",
                 style = MaterialTheme.typography.headlineLarge

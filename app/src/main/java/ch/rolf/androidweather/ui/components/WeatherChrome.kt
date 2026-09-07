@@ -31,10 +31,8 @@ import ch.rolf.androidweather.domain.HourPoint
 import ch.rolf.androidweather.domain.formatHourLabel
 import ch.rolf.androidweather.domain.formatPercent
 import ch.rolf.androidweather.domain.formatTemp
-import ch.rolf.androidweather.domain.getWmo
 import ch.rolf.androidweather.domain.parseForecastEpochMilli
 import ch.rolf.androidweather.domain.weatherMood
-import ch.rolf.androidweather.widget.glyphEmoji
 
 data class MoodColors(val container: Color, val content: Color)
 
@@ -42,7 +40,7 @@ fun moodColors(mood: String, dark: Boolean): MoodColors = when (mood) {
     "clear" -> if (dark) MoodColors(Color(0xFF5D4E1E), Color(0xFFFFE082))
     else MoodColors(Color(0xFFFFE082), Color(0xFF4E342E))
     "night" -> if (dark) MoodColors(Color(0xFF2D2150), Color(0xFFD1C4E9))
-    else MoodColors(Color(0xFFD1C4E9), Color(0xFF311B92))
+    else MoodColors(Color(0xFF283593), Color(0xFFE8EAF6))
     "rain" -> if (dark) MoodColors(Color(0xFF1A3A5C), Color(0xFFBBDEFB))
     else MoodColors(Color(0xFFBBDEFB), Color(0xFF0D47A1))
     "snow" -> if (dark) MoodColors(Color(0xFF1E3A5F), Color(0xFFE3F2FD))
@@ -211,7 +209,7 @@ private fun HourChip(
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Text(label, style = MaterialTheme.typography.labelMedium, color = mood.content)
-        Text(glyphEmoji(getWmo(hour.code, hour.isDay).glyph), style = MaterialTheme.typography.titleLarge)
+        WeatherIcon(code = hour.code, isDay = hour.isDay, size = 28.dp)
         Text(formatTemp(hour.temperature), style = MaterialTheme.typography.titleMedium, color = mood.content)
         PrecipPill(hour.precipMm, maxPrecip)
         hour.precipProb?.let {

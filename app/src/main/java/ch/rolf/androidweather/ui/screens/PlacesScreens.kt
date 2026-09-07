@@ -2,13 +2,12 @@ package ch.rolf.androidweather.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,13 +21,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ch.rolf.androidweather.domain.Place
 import ch.rolf.androidweather.domain.commuteHint
-import ch.rolf.androidweather.domain.formatTemp
-import ch.rolf.androidweather.domain.getWmo
-import ch.rolf.androidweather.domain.placeShort
 import ch.rolf.androidweather.domain.samePlace
 import ch.rolf.androidweather.ui.WetterViewModel
+import ch.rolf.androidweather.ui.components.ChoicePill
 import ch.rolf.androidweather.ui.components.CitySearch
 import ch.rolf.androidweather.ui.components.CurrentHero
+import ch.rolf.androidweather.ui.components.PlaceWeatherCard
+import ch.rolf.androidweather.ui.components.SettingsActionPill
 import ch.rolf.androidweather.ui.components.WxCard
 
 @Composable
@@ -80,18 +79,50 @@ fun FavoritenScreen(vm: WetterViewModel, onOpenPlace: (Place) -> Unit) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun VergleichScreen(vm: WetterViewModel) {
     val ui by vm.state.collectAsStateWithLifecycle()
+    val unit by vm.windUnit.collectAsStateWithLifecycle()
+    val favs by vm.favorites.collectAsStateWithLifecycle()
     var slot by remember { mutableStateOf("a") }
+    LaunchedEffect(Unit) { vm.loadCompare() }
     Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp)
+            .padding(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text("Vergleich", style = MaterialTheme.typography.headlineSmall)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = slot == "a", onClick = { slot = "a" }, label = { Text("Ort A") })
-            FilterChip(selected = slot == "b", onClick = { slot = "b" }, label = { Text("Ort B") })
+        Text(
+            "Zwei Orte nebeneinander — gleiche Karten wie Jetzt, kompakter.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            ChoicePill(label = "Ort A", selected = slot == "a", onClick = { slot = "a" })
+            ChoicePill(label = "Ort B", selected = slot == "b", onClick = { slot = "b" })
+        }
+        if (favs.isNotEmpty()) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                favs.forEach { place ->
+                    val selected = when (slot) {
+                        "a" -> ui.compareA?.place?.let { samePlace(it, place) } == true
+                        else -> ui.compareB?.place?.let { samePlace(it, place) } == true
+                    }
+                    ChoicePill(
+                        label = place.name,
+                        selected = selected,
+                        onClick = {
+                            val a = if (slot == "a") place else ui.compareA?.place
+                            val b = if (slot == "b") place else ui.compareB?.place
+                            vm.compare(a, b)
+                        }
+                    )
+                }
+            }
         }
         CitySearch(
             results = ui.searchResults,
@@ -100,57 +131,86 @@ fun VergleichScreen(vm: WetterViewModel) {
                 val a = if (slot == "a") place else ui.compareA?.place
                 val b = if (slot == "b") place else ui.compareB?.place
                 vm.compare(a, b)
-            }
+            },
+            placeholder = if (slot == "a") "Ort A suchen" else "Ort B suchen"
         )
-        listOf("A" to ui.compareA, "B" to ui.compareB).forEach { (label, bundle) ->
-            WxCard {
-                Text("Ort $label", style = MaterialTheme.typography.titleLarge)
-                if (bundle == null) Text("Ort wählen")
-                else {
-                    Text(placeShort(bundle.place))
-                    Text(formatTemp(bundle.current.temperature_2m), style = MaterialTheme.typography.headlineMedium)
-                    Text(getWmo(bundle.current.weather_code, bundle.current.is_day == 1).label)
-                    Text("Wind ${bundle.current.wind_speed_10m.toInt()} km/h · ${bundle.current.relative_humidity_2m.toInt()} %")
-                }
-            }
-        }
+        PlaceWeatherCard(
+            title = "Ort A",
+            bundle = ui.compareA,
+            emptyText = "Ort wählen — Favorit oder Suche.",
+            windUnit = unit
+        )
+        PlaceWeatherCard(
+            title = "Ort B",
+            bundle = ui.compareB,
+            emptyText = "Ort wählen — Favorit oder Suche.",
+            windUnit = unit
+        )
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PendelnScreen(vm: WetterViewModel) {
     val ui by vm.state.collectAsStateWithLifecycle()
     val destPlace by vm.commutePlace.collectAsStateWithLifecycle()
+    val favs by vm.favorites.collectAsStateWithLifecycle()
+    val unit by vm.windUnit.collectAsStateWithLifecycle()
     LaunchedEffect(destPlace) { vm.loadCommute() }
     Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp)
+            .padding(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text("Pendeln", style = MaterialTheme.typography.headlineSmall)
-        Text("Zielort mit Lite-Prognose gegenüber dem aktuellen Ort.")
+        Text(
+            "Wetter am Start und am Ziel — Favoriten oder Suche.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        if (favs.isNotEmpty()) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                favs.forEach { place ->
+                    if (samePlace(place, ui.place)) return@forEach
+                    ChoicePill(
+                        label = place.name,
+                        selected = destPlace?.let { samePlace(it, place) } == true,
+                        onClick = { vm.setCommute(place) }
+                    )
+                }
+            }
+        }
         CitySearch(
             results = ui.searchResults,
             onQuery = vm::search,
             onSelect = { vm.setCommute(it) },
-            placeholder = "Ziel suchen"
+            placeholder = "Zielort suchen"
         )
-        destPlace?.let { Text("Ziel: ${placeShort(it)}") }
+        PlaceWeatherCard(
+            title = "Start",
+            bundle = ui.bundle,
+            emptyText = "Aktueller Ort wird geladen…",
+            windUnit = unit
+        )
+        PlaceWeatherCard(
+            title = "Ziel",
+            bundle = ui.commuteDest,
+            emptyText = destPlace?.name?.let { "Wetter für $it wird geladen…" } ?: "Ziel wählen — Favorit oder Suche.",
+            windUnit = unit
+        )
         val home = ui.bundle
         val dest = ui.commuteDest
-        if (home != null) {
-            WxCard {
-                Text("Start · ${placeShort(home.place)}", style = MaterialTheme.typography.titleLarge)
-                Text("${formatTemp(home.current.temperature_2m)} · ${getWmo(home.current.weather_code, home.current.is_day == 1).label}")
-            }
-        }
-        if (dest != null) {
-            WxCard {
-                Text("Ziel · ${placeShort(dest.place)}", style = MaterialTheme.typography.titleLarge)
-                Text("${formatTemp(dest.current.temperature_2m)} · ${getWmo(dest.current.weather_code, dest.current.is_day == 1).label}")
-            }
-        }
         if (home != null && dest != null) {
-            commuteHint(home, dest)?.let { WxCard { Text(it) } }
+            commuteHint(home, dest)?.let { hint ->
+                WxCard {
+                    Text("Hinweis", style = MaterialTheme.typography.titleLarge)
+                    Text(hint, style = MaterialTheme.typography.bodyLarge)
+                }
+            }
+            SettingsActionPill(label = "Ziel entfernen", onClick = { vm.setCommute(null) })
         }
     }
 }

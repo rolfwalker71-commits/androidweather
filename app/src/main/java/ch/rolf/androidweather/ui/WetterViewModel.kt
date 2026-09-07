@@ -212,6 +212,17 @@ class WetterViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun loadCompare() {
+        viewModelScope.launch {
+            val (a, b) = prefs.loadCompare()
+            if (a == null && b == null) return@launch
+            _state.value = _state.value.copy(
+                compareA = a?.let { runCatching { repo.fetchWeather(it, lite = true) }.getOrNull() },
+                compareB = b?.let { runCatching { repo.fetchWeather(it, lite = true) }.getOrNull() }
+            )
+        }
+    }
+
     fun loadCommute() {
         viewModelScope.launch {
             val dest = prefs.commute() ?: return@launch

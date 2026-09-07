@@ -9,6 +9,14 @@
     android:paddingTop="2dp"
     android:paddingBottom="2dp">
 
+    <ImageView
+        android:id="@+id/ongoing_collapsed_icon"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginEnd="8dp"
+        android:contentDescription="@null"
+        android:scaleType="fitCenter" />
+
     <TextView
         android:id="@+id/ongoing_collapsed_line"
         android:layout_width="0dp"

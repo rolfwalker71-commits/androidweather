@@ -21,6 +21,7 @@ import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
+import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -58,7 +59,7 @@ fun WideWidgetLayout(snapshot: WidgetSnapshot) {
                     maxLines = 1,
                     style = TextStyle(
                         color = GlanceTheme.colors.onPrimaryContainer,
-                        fontSize = 13.sp,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Medium
                     )
                 )
@@ -67,29 +68,30 @@ fun WideWidgetLayout(snapshot: WidgetSnapshot) {
                         text = snapshot.temperature,
                         style = TextStyle(
                             color = GlanceTheme.colors.onPrimaryContainer,
-                            fontSize = 34.sp,
+                            fontSize = 37.sp,
                             fontWeight = FontWeight.Bold
                         )
                     )
-                    Text(text = "  ${glyphEmoji(snapshot.glyph)}", style = TextStyle(fontSize = 26.sp))
+                    Spacer(GlanceModifier.width(8.dp))
+                    GlanceWeatherIcon(glyph = snapshot.glyph, iconSize = 28.dp, wellSize = 36.dp)
                 }
                 Text(
                     text = snapshot.condition,
                     maxLines = 1,
-                    style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 11.sp)
+                    style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 13.sp)
                 )
                 snapshot.highLow?.let { range ->
                     Text(
                         text = "Heute $range",
                         maxLines = 1,
-                        style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 10.sp)
+                        style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 12.sp)
                     )
                 }
                 snapshot.rainLine?.let { line ->
                     Text(
                         text = line,
                         maxLines = 1,
-                        style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 10.sp)
+                        style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 12.sp)
                     )
                 }
             }
@@ -105,14 +107,14 @@ fun WideWidgetLayout(snapshot: WidgetSnapshot) {
                         Text(
                             text = hour.time,
                             maxLines = 1,
-                            style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 10.sp)
+                            style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 12.sp)
                         )
-                        Text(text = glyphEmoji(hour.glyph), style = TextStyle(fontSize = 14.sp))
+                        GlanceWeatherIcon(glyph = hour.glyph, iconSize = 16.dp, wellSize = 22.dp)
                         Text(
                             text = hour.temperature,
                             style = TextStyle(
                                 color = GlanceTheme.colors.onPrimaryContainer,
-                                fontSize = 11.sp,
+                                fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium
                             )
                         )

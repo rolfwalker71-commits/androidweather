@@ -58,7 +58,7 @@ fun ExtraWideWidgetLayout(snapshot: WidgetSnapshot) {
                     maxLines = 1,
                     style = TextStyle(
                         color = GlanceTheme.colors.onPrimaryContainer,
-                        fontSize = 13.sp,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Medium
                     )
                 )
@@ -67,16 +67,20 @@ fun ExtraWideWidgetLayout(snapshot: WidgetSnapshot) {
                         text = snapshot.temperature,
                         style = TextStyle(
                             color = GlanceTheme.colors.onPrimaryContainer,
-                            fontSize = 32.sp,
+                            fontSize = 35.sp,
                             fontWeight = FontWeight.Bold
                         )
                     )
-                    Text(text = "  ${glyphEmoji(snapshot.glyph)}", style = TextStyle(fontSize = 24.sp))
+                    GlanceWeatherIcon(
+                        glyph = snapshot.glyph,
+                        iconSize = 26.dp,
+                        wellSize = 34.dp
+                    )
                 }
                 Text(
                     text = snapshot.condition,
                     maxLines = 1,
-                    style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 10.sp)
+                    style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 12.sp)
                 )
             }
             Column(horizontalAlignment = Alignment.End) {
@@ -86,7 +90,7 @@ fun ExtraWideWidgetLayout(snapshot: WidgetSnapshot) {
                         maxLines = 1,
                         style = TextStyle(
                             color = GlanceTheme.colors.onPrimaryContainer,
-                            fontSize = 12.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.Medium
                         )
                     )
@@ -95,7 +99,7 @@ fun ExtraWideWidgetLayout(snapshot: WidgetSnapshot) {
                     Text(
                         text = line,
                         maxLines = 2,
-                        style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 10.sp)
+                        style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 12.sp)
                     )
                 }
             }
@@ -104,7 +108,7 @@ fun ExtraWideWidgetLayout(snapshot: WidgetSnapshot) {
             Text(
                 text = metrics,
                 maxLines = 1,
-                style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 10.sp),
+                style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 12.sp),
                 modifier = GlanceModifier.fillMaxWidth().padding(top = 6.dp)
             )
         }
@@ -120,14 +124,14 @@ fun ExtraWideWidgetLayout(snapshot: WidgetSnapshot) {
                         Text(
                             text = hour.time,
                             maxLines = 1,
-                            style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 10.sp)
+                            style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 12.sp)
                         )
-                        Text(text = glyphEmoji(hour.glyph), style = TextStyle(fontSize = 14.sp))
+                        GlanceWeatherIcon(glyph = hour.glyph, iconSize = 16.dp, wellSize = 22.dp)
                         Text(
                             text = hour.temperature,
                             style = TextStyle(
                                 color = GlanceTheme.colors.onPrimaryContainer,
-                                fontSize = 11.sp,
+                                fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium
                             )
                         )
@@ -139,7 +143,7 @@ fun ExtraWideWidgetLayout(snapshot: WidgetSnapshot) {
             Text(
                 text = stamp,
                 maxLines = 1,
-                style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 10.sp),
+                style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 11.sp),
                 modifier = GlanceModifier.fillMaxWidth().padding(top = 4.dp)
             )
         }

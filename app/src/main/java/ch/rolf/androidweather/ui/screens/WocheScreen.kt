@@ -30,7 +30,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.LineBreak
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,15 +40,14 @@ import ch.rolf.androidweather.domain.formatDayMonth
 import ch.rolf.androidweather.domain.formatPercent
 import ch.rolf.androidweather.domain.formatTemp
 import ch.rolf.androidweather.domain.formatWeekday
-import ch.rolf.androidweather.domain.getWmo
 import ch.rolf.androidweather.domain.weatherMood
 import ch.rolf.androidweather.ui.WetterViewModel
 import ch.rolf.androidweather.ui.components.DayDetail
 import ch.rolf.androidweather.ui.components.HourDetailSheet
 import ch.rolf.androidweather.ui.components.TempRangeBar
+import ch.rolf.androidweather.ui.components.WeatherIcon
 import ch.rolf.androidweather.ui.components.WxCard
 import ch.rolf.androidweather.ui.components.moodColors
-import ch.rolf.androidweather.widget.glyphEmoji
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -132,11 +130,11 @@ fun WocheScreen(vm: WetterViewModel) {
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                    Text(
-                        glyphEmoji(getWmo(day.code, true).glyph),
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.width(40.dp),
-                        textAlign = TextAlign.Center
+                    WeatherIcon(
+                        code = day.code,
+                        isDay = true,
+                        size = 36.dp,
+                        modifier = Modifier.width(40.dp)
                     )
                     TempRangeBar(
                         tMin = day.tMin,

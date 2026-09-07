@@ -53,7 +53,7 @@ fun CompactWidgetLayout(snapshot: WidgetSnapshot) {
             maxLines = 2,
             style = TextStyle(
                 color = GlanceTheme.colors.onPrimaryContainer,
-                fontSize = 12.sp,
+                fontSize = 13.sp,
                 fontWeight = FontWeight.Medium
             )
         )
@@ -62,39 +62,26 @@ fun CompactWidgetLayout(snapshot: WidgetSnapshot) {
                 text = snapshot.temperature,
                 style = TextStyle(
                     color = GlanceTheme.colors.onPrimaryContainer,
-                    fontSize = 34.sp,
+                    fontSize = 37.sp,
                     fontWeight = FontWeight.Bold
                 )
             )
             Spacer(GlanceModifier.width(8.dp))
-            Text(text = glyphEmoji(snapshot.glyph), style = TextStyle(fontSize = 26.sp))
+            GlanceWeatherIcon(glyph = snapshot.glyph, iconSize = 28.dp, wellSize = 36.dp)
         }
         Text(
             text = snapshot.condition,
             maxLines = 2,
-            style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 11.sp)
+            style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 12.sp)
         )
         snapshot.rainLine?.let { line ->
             Text(
                 text = line,
                 maxLines = 2,
-                style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 10.sp)
+                style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 11.sp)
             )
         }
     }
-}
-
-fun glyphEmoji(glyph: String): String = when (glyph) {
-    "sunny" -> "☀"
-    "night" -> "☾"
-    "partly_cloudy", "partly_cloudy_night" -> "⛅"
-    "cloud" -> "☁"
-    "foggy" -> "🌫"
-    "rainy_light", "rainy", "rainy_heavy" -> "🌧"
-    "snowy", "snowflake" -> "❄"
-    "thunderstorm" -> "⛈"
-    "hail" -> "🌨"
-    else -> "☁"
 }
 
 class CompactWidgetReceiver : GlanceAppWidgetReceiver() {

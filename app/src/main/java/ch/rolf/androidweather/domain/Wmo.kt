@@ -9,25 +9,25 @@ private val WMO = mapOf(
     3 to WmoInfo("Bedeckt", "cloud"),
     45 to WmoInfo("Nebel", "foggy"),
     48 to WmoInfo("Reifnebel", "foggy"),
-    51 to WmoInfo("Leichter Nieselregen", "rainy_light"),
-    53 to WmoInfo("Nieselregen", "rainy_light"),
-    55 to WmoInfo("Starker Nieselregen", "rainy"),
-    56 to WmoInfo("Leichter Eisniesel", "rainy_light"),
-    57 to WmoInfo("Gefrierender Nieselregen", "rainy"),
+    51 to WmoInfo("Leichter Nieselregen", "drizzle"),
+    53 to WmoInfo("Nieselregen", "drizzle"),
+    55 to WmoInfo("Starker Nieselregen", "drizzle"),
+    56 to WmoInfo("Leichter Eisniesel", "sleet"),
+    57 to WmoInfo("Gefrierender Nieselregen", "sleet"),
     61 to WmoInfo("Leichter Regen", "rainy"),
     63 to WmoInfo("Regen", "rainy"),
     65 to WmoInfo("Starker Regen", "rainy_heavy"),
-    66 to WmoInfo("Leichter Eisregen", "rainy"),
-    67 to WmoInfo("Eisregen", "rainy_heavy"),
+    66 to WmoInfo("Leichter Eisregen", "sleet"),
+    67 to WmoInfo("Eisregen", "sleet"),
     71 to WmoInfo("Leichter Schneefall", "snowy"),
     73 to WmoInfo("Schneefall", "snowy"),
-    75 to WmoInfo("Starker Schneefall", "snowflake"),
+    75 to WmoInfo("Starker Schneefall", "snowy"),
     77 to WmoInfo("Schneegriesel", "snowy"),
-    80 to WmoInfo("Leichte Regenschauer", "rainy"),
-    81 to WmoInfo("Regenschauer", "rainy"),
+    80 to WmoInfo("Leichte Regenschauer", "showers"),
+    81 to WmoInfo("Regenschauer", "showers"),
     82 to WmoInfo("Heftige Regenschauer", "rainy_heavy"),
     85 to WmoInfo("Leichte Schneeschauer", "snowy"),
-    86 to WmoInfo("Schneeschauer", "snowflake"),
+    86 to WmoInfo("Schneeschauer", "snowy"),
     95 to WmoInfo("Gewitter", "thunderstorm"),
     96 to WmoInfo("Gewitter mit Hagel", "hail"),
     99 to WmoInfo("Schweres Gewitter mit Hagel", "hail")
@@ -37,6 +37,7 @@ fun getWmo(code: Int, isDay: Boolean = true): WmoInfo {
     WMO[code]?.let { info ->
         if (!isDay && code <= 1) return WmoInfo(info.label, "night")
         if (!isDay && code == 2) return WmoInfo(info.label, "partly_cloudy_night")
+        if (!isDay && code in 80..81) return WmoInfo(info.label, "showers_night")
         return info
     }
     val inferred = when {
@@ -45,10 +46,10 @@ fun getWmo(code: Int, isDay: Boolean = true): WmoInfo {
         code <= 29 -> WmoInfo("Niederschlag in der Nähe", "rainy")
         code <= 39 -> WmoInfo("Schneeverwehung", "snowy")
         code <= 49 -> WmoInfo("Nebel", "foggy")
-        code <= 59 -> WmoInfo("Nieselregen", "rainy_light")
+        code <= 59 -> WmoInfo("Nieselregen", "drizzle")
         code <= 69 -> WmoInfo("Regen", "rainy")
         code <= 79 -> WmoInfo("Schnee", "snowy")
-        code <= 84 -> WmoInfo("Regenschauer", "rainy")
+        code <= 84 -> WmoInfo("Regenschauer", if (isDay) "showers" else "showers_night")
         code <= 94 -> WmoInfo("Schneeschauer", "snowy")
         else -> WmoInfo("Gewitter", "thunderstorm")
     }
