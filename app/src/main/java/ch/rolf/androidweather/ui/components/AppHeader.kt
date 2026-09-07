@@ -29,7 +29,9 @@ fun AppHeader(
     onRefresh: () -> Unit,
     onSearch: (String) -> Unit,
     onSelectPlace: (Place) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showSearch: Boolean = true,
+    searchActive: Boolean = true
 ) {
     val bundle = ui.bundle
     val updated = when {
@@ -61,11 +63,14 @@ fun AppHeader(
                 Icon(Icons.Outlined.Refresh, contentDescription = "Aktualisieren")
             }
         }
-        CitySearch(
-            results = ui.searchResults,
-            onQuery = onSearch,
-            onSelect = onSelectPlace,
-            placeholder = "Stadt weltweit suchen"
-        )
+        if (showSearch) {
+            CitySearch(
+                results = ui.searchResults,
+                onQuery = onSearch,
+                onSelect = onSelectPlace,
+                placeholder = "Stadt weltweit suchen",
+                active = searchActive
+            )
+        }
     }
 }

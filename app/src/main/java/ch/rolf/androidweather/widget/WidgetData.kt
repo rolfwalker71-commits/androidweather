@@ -12,11 +12,13 @@ import ch.rolf.androidweather.domain.formatHpa
 import ch.rolf.androidweather.domain.formatHourLabel
 import ch.rolf.androidweather.domain.formatPercent
 import ch.rolf.androidweather.domain.formatTemp
+import ch.rolf.androidweather.domain.formatTime
 import ch.rolf.androidweather.domain.formatWidgetUpdated
 import ch.rolf.androidweather.domain.formatWind
 import ch.rolf.androidweather.domain.getWmo
 import ch.rolf.androidweather.domain.nextPrecipLine
 import ch.rolf.androidweather.domain.samePlace
+import ch.rolf.androidweather.domain.weatherMood
 import ch.rolf.androidweather.domain.windDirection
 import kotlinx.coroutines.flow.first
 
@@ -41,7 +43,10 @@ data class WidgetSnapshot(
     val wind: String? = null,
     val pressure: String? = null,
     val humidity: String? = null,
-    val updatedAt: String? = null
+    val updatedAt: String? = null,
+    val mood: String = "cloud",
+    val feelsLike: String? = null,
+    val sunLine: String? = null
 )
 
 object WidgetPrefs {
@@ -88,7 +93,7 @@ fun snapshotFrom(
     windUnit: WindUnit = WindUnit.Kmh
 ): WidgetSnapshot {
     if (bundle == null) {
-        return WidgetSnapshot(placeName, "–", "Keine Daten", null, "cloud")
+        return WidgetSnapshot(placeName, "–", "Keine Daten", null, "cloud", mood = "cloud")
     }
     val current = bundle.current
     val wmo = getWmo(current.weather_code, current.is_day == 1)
@@ -111,6 +116,11 @@ fun snapshotFrom(
         wind = "${formatWind(current.wind_speed_10m, windUnit)} ${windDirection(current.wind_direction_10m)}",
         pressure = formatHpa(current.pressure_msl),
         humidity = "${formatPercent(current.relative_humidity_2m)} rF",
-        updatedAt = formatWidgetUpdated(bundle.fetchedAt, bundle.timezone)
+        updatedAt = formatWidgetUpdated(bundle.fetchedAt, bundle.timezone),
+        mood = weatherMood(current.weather_code, current.is_day == 1),
+        feelsLike = "Gefühlt ${formatTemp(current.apparent_temperature)}",
+        sunLine = today?.takeIf { it.sunrise.isNotBlank() && it.sunset.isNotBlank() }?.let {
+            "Sonne ${formatTime(it.sunrise, bundle.timezone)}–${formatTime(it.sunset, bundle.timezone)}"
+        }
     )
 }

@@ -73,7 +73,13 @@ fun EinstellungenScreen(vm: WetterViewModel) {
                 icon = Icons.Outlined.Place,
                 filled = true
             )
-            CitySearch(ui.searchResults, vm::search, vm::setHome, placeholder = "Home-Ort suchen")
+            CitySearch(
+                results = ui.searchResults,
+                onQuery = { vm.search(it, "home") },
+                onSelect = vm::setHome,
+                placeholder = "Home-Ort suchen",
+                active = ui.searchOwner == "home"
+            )
         }
         SettingsPanel(
             title = "Einheiten",

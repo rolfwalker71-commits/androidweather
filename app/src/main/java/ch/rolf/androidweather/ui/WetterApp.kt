@@ -89,6 +89,8 @@ fun WetterApp(vm: WetterViewModel = viewModel()) {
         val nav = rememberNavController()
         val backStack by nav.currentBackStackEntryAsState()
         val current = backStack?.destination
+        val route = current?.route
+        val ownSearchRoutes = setOf("pendeln", "vergleich", "einstellungen")
         val drawerState = rememberDrawerState(DrawerValue.Closed)
         val scope = rememberCoroutineScope()
         fun openMehr(route: String) {
@@ -133,8 +135,10 @@ fun WetterApp(vm: WetterViewModel = viewModel()) {
                             onMenu = { scope.launch { drawerState.open() } },
                             onLocate = vm::locate,
                             onRefresh = { vm.refresh() },
-                            onSearch = vm::search,
-                            onSelectPlace = vm::selectPlace
+                            onSearch = { vm.search(it, "header") },
+                            onSelectPlace = vm::selectPlace,
+                            showSearch = route !in ownSearchRoutes,
+                            searchActive = ui.searchOwner == "header" || ui.searchOwner.isEmpty()
                         )
                     }
                 },
@@ -150,9 +154,9 @@ fun WetterApp(vm: WetterViewModel = viewModel()) {
                             } == true || (tab.route == "mehr" && current?.route in mehrRoutes && current?.route != "jetzt" && current?.route != "verlauf" && current?.route != "woche" && current?.route != "luft")
                             TabItem(tab, selected) {
                                 nav.navigate(tab.route) {
-                                    popUpTo(nav.graph.findStartDestination().id) { saveState = true }
+                                    popUpTo(nav.graph.findStartDestination().id) { saveState = false }
                                     launchSingleTop = true
-                                    restoreState = true
+                                    restoreState = false
                                 }
                             }
                         }
@@ -176,9 +180,9 @@ fun WetterApp(vm: WetterViewModel = viewModel()) {
                         FavoritenScreen(vm) { place ->
                             vm.selectPlace(place)
                             nav.navigate("jetzt") {
-                                popUpTo(nav.graph.findStartDestination().id) { saveState = true }
+                                popUpTo(nav.graph.findStartDestination().id) { saveState = false }
                                 launchSingleTop = true
-                                restoreState = true
+                                restoreState = false
                             }
                         }
                     }

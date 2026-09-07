@@ -7,24 +7,17 @@ import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
-import androidx.glance.action.actionStartActivity
-import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.provideContent
-import androidx.glance.background
 import androidx.glance.layout.Alignment
-import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
-import androidx.glance.layout.fillMaxSize
-import androidx.glance.layout.padding
 import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import ch.rolf.androidweather.MainActivity
 
 /** Compact 2x2 widget. Layout lives here so later visual tweaks stay local. */
 class CompactWeatherWidget : GlanceAppWidget() {
@@ -39,20 +32,13 @@ class CompactWeatherWidget : GlanceAppWidget() {
 
 @Composable
 fun CompactWidgetLayout(snapshot: WidgetSnapshot) {
-    Column(
-        modifier = GlanceModifier
-            .fillMaxSize()
-            .background(GlanceTheme.colors.primaryContainer)
-            .padding(16.dp)
-            .clickable(actionStartActivity<MainActivity>()),
-        verticalAlignment = Alignment.Top,
-        horizontalAlignment = Alignment.Start
-    ) {
+    val on = widgetOnColor(snapshot.mood)
+    WidgetHeroFrame(mood = snapshot.mood) {
         Text(
             text = snapshot.placeName,
             maxLines = 2,
             style = TextStyle(
-                color = GlanceTheme.colors.onPrimaryContainer,
+                color = on,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -61,24 +47,24 @@ fun CompactWidgetLayout(snapshot: WidgetSnapshot) {
             Text(
                 text = snapshot.temperature,
                 style = TextStyle(
-                    color = GlanceTheme.colors.onPrimaryContainer,
-                    fontSize = 37.sp,
+                    color = on,
+                    fontSize = 41.sp,
                     fontWeight = FontWeight.Bold
                 )
             )
             Spacer(GlanceModifier.width(8.dp))
-            GlanceWeatherIcon(glyph = snapshot.glyph, iconSize = 28.dp, wellSize = 36.dp)
+            GlanceWeatherIcon(glyph = snapshot.glyph, iconSize = 40.dp, wellSize = 52.dp)
         }
         Text(
             text = snapshot.condition,
             maxLines = 2,
-            style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 12.sp)
+            style = TextStyle(color = on, fontSize = 12.sp)
         )
         snapshot.rainLine?.let { line ->
             Text(
                 text = line,
                 maxLines = 2,
-                style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 11.sp)
+                style = TextStyle(color = on, fontSize = 11.sp)
             )
         }
     }

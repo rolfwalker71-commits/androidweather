@@ -23,6 +23,8 @@ import ch.rolf.androidweather.domain.getWmo
 import ch.rolf.androidweather.domain.precipNowSummary
 import ch.rolf.androidweather.domain.weatherMood
 import ch.rolf.androidweather.domain.windDirection
+import ch.rolf.androidweather.ui.components.heroMoodGradientArgb
+import ch.rolf.androidweather.ui.components.heroOnArgb
 import ch.rolf.androidweather.ui.components.weatherGlyphRes
 import ch.rolf.androidweather.ui.components.weatherIconWellArgb
 
@@ -107,47 +109,21 @@ internal fun expandedOngoingViews(
     }
 }
 
-internal fun moodAccentColor(mood: String, dark: Boolean): Int = moodGradientColors(mood, dark)[0]
+internal fun moodAccentColor(mood: String, dark: Boolean): Int = heroMoodGradientArgb(mood, dark)[0]
 
 private fun isNightMode(context: Context): Boolean {
     val night = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
     return night == Configuration.UI_MODE_NIGHT_YES
 }
 
-private fun moodOnColor(mood: String, dark: Boolean): Int = when {
-    dark -> 0xFFF4F6F7.toInt()
-    mood == "clear" -> 0xFF3E2723.toInt()
-    mood == "night" -> 0xFFEDE7F6.toInt()
-    mood == "rain" || mood == "snow" -> 0xFF0D47A1.toInt()
-    mood == "storm" -> 0xFF4A148C.toInt()
-    else -> 0xFF263238.toInt()
-}
-
-private fun moodGradientColors(mood: String, dark: Boolean): IntArray = when {
-    dark -> when (mood) {
-        "clear" -> intArrayOf(0xFF3D3420.toInt(), 0xFF2C2824.toInt(), 0xFF1E2021.toInt())
-        "night" -> intArrayOf(0xFF1C1830.toInt(), 0xFF242038.toInt(), 0xFF1E2021.toInt())
-        "rain" -> intArrayOf(0xFF1A2834.toInt(), 0xFF1E2830.toInt(), 0xFF1E2021.toInt())
-        "snow" -> intArrayOf(0xFF1C2834.toInt(), 0xFF222830.toInt(), 0xFF1E2021.toInt())
-        "storm" -> intArrayOf(0xFF2A2238.toInt(), 0xFF241E30.toInt(), 0xFF1E2021.toInt())
-        else -> intArrayOf(0xFF2A2E32.toInt(), 0xFF242628.toInt(), 0xFF1E2021.toInt())
-    }
-    else -> when (mood) {
-        "clear" -> intArrayOf(0xFFFFE082.toInt(), 0xFFFFCC80.toInt(), 0xFFCCE8E9.toInt())
-        "night" -> intArrayOf(0xFF0D47A1.toInt(), 0xFF1565C0.toInt(), 0xFF004F58.toInt())
-        "rain" -> intArrayOf(0xFF64B5F6.toInt(), 0xFF90CAF9.toInt(), 0xFFBBDEFB.toInt())
-        "snow" -> intArrayOf(0xFF64B5F6.toInt(), 0xFF90CAF9.toInt(), 0xFF9FA8DA.toInt())
-        "storm" -> intArrayOf(0xFF006874.toInt(), 0xFF00838F.toInt(), 0xFF4DD0E1.toInt())
-        else -> intArrayOf(0xFF78909C.toInt(), 0xFF90A4AE.toInt(), 0xFF80CBC4.toInt())
-    }
-}
+private fun moodOnColor(mood: String, dark: Boolean): Int = heroOnArgb(mood, dark)
 
 private fun moodBackgroundBitmap(context: Context, mood: String, dark: Boolean): Bitmap {
     val dm = context.resources.displayMetrics
     val width = (dm.widthPixels - 48f * dm.density).toInt().coerceIn(360, 1200)
     val height = (232f * dm.density).toInt().coerceAtLeast(160)
     val radius = 24f * dm.density
-    val colors = moodGradientColors(mood, dark)
+    val colors = heroMoodGradientArgb(mood, dark)
     val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
     val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {

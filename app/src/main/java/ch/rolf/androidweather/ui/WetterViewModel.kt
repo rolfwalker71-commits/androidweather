@@ -41,6 +41,7 @@ data class WetterUiState(
     val passes: List<PassObservation> = emptyList(),
     val notice: ProactivityNotice? = null,
     val searchResults: List<Place> = emptyList(),
+    val searchOwner: String = "",
     val radar: RadarCatalog? = null,
     val compareA: WeatherBundle? = null,
     val compareB: WeatherBundle? = null,
@@ -120,14 +121,25 @@ class WetterViewModel(app: Application) : AndroidViewModel(app) {
         _state.value = _state.value.copy(alerts = alerts, avalanche = avalanche, passes = passes)
     }
 
-    fun search(query: String) {
+    fun search(query: String, owner: String = "header") {
         viewModelScope.launch {
-            _state.value = _state.value.copy(searchResults = runCatching { repo.searchPlaces(query) }.getOrDefault(emptyList()))
+            if (query.isBlank()) {
+                _state.value = _state.value.copy(searchResults = emptyList(), searchOwner = "")
+                return@launch
+            }
+            _state.value = _state.value.copy(
+                searchOwner = owner,
+                searchResults = runCatching { repo.searchPlaces(query) }.getOrDefault(emptyList())
+            )
         }
     }
 
+    fun clearSearch() {
+        _state.value = _state.value.copy(searchResults = emptyList(), searchOwner = "")
+    }
+
     fun selectPlace(place: Place) {
-        _state.value = _state.value.copy(searchResults = emptyList())
+        clearSearch()
         refresh(place)
     }
 
@@ -148,7 +160,10 @@ class WetterViewModel(app: Application) : AndroidViewModel(app) {
     fun isFavorite(place: Place): Boolean = favorites.value.any { samePlace(it, place) }
 
     fun setHome(place: Place) {
-        viewModelScope.launch { prefs.saveHome(place) }
+        viewModelScope.launch {
+            prefs.saveHome(place)
+            clearSearch()
+        }
     }
 
     fun setWindUnit(unit: WindUnit) {
@@ -180,10 +195,16 @@ class WetterViewModel(app: Application) : AndroidViewModel(app) {
             prefs.saveCommute(place)
             if (place != null) {
                 _state.value = _state.value.copy(
-                    commuteDest = runCatching { repo.fetchWeather(place, lite = true) }.getOrNull()
+                    searchResults = emptyList(),
+                    searchOwner = "",
+                    commuteDest = runCatching { repo.fetchWeather(place) }.getOrNull()
                 )
             } else {
-                _state.value = _state.value.copy(commuteDest = null)
+                _state.value = _state.value.copy(
+                    searchResults = emptyList(),
+                    searchOwner = "",
+                    commuteDest = null
+                )
             }
         }
     }
@@ -206,6 +227,8 @@ class WetterViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             prefs.saveCompare(a, b)
             _state.value = _state.value.copy(
+                searchResults = emptyList(),
+                searchOwner = "",
                 compareA = a?.let { runCatching { repo.fetchWeather(it, lite = true) }.getOrNull() },
                 compareB = b?.let { runCatching { repo.fetchWeather(it, lite = true) }.getOrNull() }
             )
@@ -227,7 +250,7 @@ class WetterViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             val dest = prefs.commute() ?: return@launch
             _state.value = _state.value.copy(
-                commuteDest = runCatching { repo.fetchWeather(dest, lite = true) }.getOrNull()
+                commuteDest = runCatching { repo.fetchWeather(dest) }.getOrNull()
             )
         }
     }

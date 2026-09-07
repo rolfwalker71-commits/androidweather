@@ -86,52 +86,41 @@ private val NowValueStyle = TextStyle(
     fontFeatureSettings = "tnum"
 )
 
-fun heroMoodTopColor(mood: String, dark: Boolean): Color = when {
+fun heroMoodGradientArgb(mood: String, dark: Boolean): IntArray = when {
     dark -> when (mood) {
-        "clear" -> Color(0xFF3D3420)
-        "night" -> Color(0xFF1C1830)
-        "rain" -> Color(0xFF1A2834)
-        "snow" -> Color(0xFF1C2834)
-        "storm" -> Color(0xFF2A2238)
-        else -> Color(0xFF2A2E32)
+        "clear" -> intArrayOf(0xFF3D3420.toInt(), 0xFF2C2824.toInt(), 0xFF1E2021.toInt())
+        "night" -> intArrayOf(0xFF1C1830.toInt(), 0xFF242038.toInt(), 0xFF1E2021.toInt())
+        "rain" -> intArrayOf(0xFF1A2834.toInt(), 0xFF1E2830.toInt(), 0xFF1E2021.toInt())
+        "snow" -> intArrayOf(0xFF1C2834.toInt(), 0xFF222830.toInt(), 0xFF1E2021.toInt())
+        "storm" -> intArrayOf(0xFF2A2238.toInt(), 0xFF241E30.toInt(), 0xFF1E2021.toInt())
+        else -> intArrayOf(0xFF2A2E32.toInt(), 0xFF242628.toInt(), 0xFF1E2021.toInt())
     }
     else -> when (mood) {
-        "clear" -> Color(0xFFFFE082)
-        "night" -> Color(0xFF0D47A1)
-        "rain" -> Color(0xFF64B5F6)
-        "snow" -> Color(0xFF64B5F6)
-        "storm" -> Color(0xFF006874)
-        else -> Color(0xFF78909C)
+        "clear" -> intArrayOf(0xFFFFE082.toInt(), 0xFFFFCC80.toInt(), 0xFFCCE8E9.toInt())
+        "night" -> intArrayOf(0xFF0D47A1.toInt(), 0xFF1565C0.toInt(), 0xFF004F58.toInt())
+        "rain" -> intArrayOf(0xFF64B5F6.toInt(), 0xFF90CAF9.toInt(), 0xFFBBDEFB.toInt())
+        "snow" -> intArrayOf(0xFF64B5F6.toInt(), 0xFF90CAF9.toInt(), 0xFF9FA8DA.toInt())
+        "storm" -> intArrayOf(0xFF006874.toInt(), 0xFF00838F.toInt(), 0xFF4DD0E1.toInt())
+        else -> intArrayOf(0xFF78909C.toInt(), 0xFF90A4AE.toInt(), 0xFF80CBC4.toInt())
     }
 }
 
-fun heroMoodBrush(mood: String, dark: Boolean): Brush = when {
-    dark -> when (mood) {
-        "clear" -> Brush.verticalGradient(listOf(Color(0xFF3D3420), Color(0xFF2C2824), Color(0xFF1E2021)))
-        "night" -> Brush.verticalGradient(listOf(Color(0xFF1C1830), Color(0xFF242038), Color(0xFF1E2021)))
-        "rain" -> Brush.verticalGradient(listOf(Color(0xFF1A2834), Color(0xFF1E2830), Color(0xFF1E2021)))
-        "snow" -> Brush.verticalGradient(listOf(Color(0xFF1C2834), Color(0xFF222830), Color(0xFF1E2021)))
-        "storm" -> Brush.verticalGradient(listOf(Color(0xFF2A2238), Color(0xFF241E30), Color(0xFF1E2021)))
-        else -> Brush.verticalGradient(listOf(Color(0xFF2A2E32), Color(0xFF242628), Color(0xFF1E2021)))
-    }
-    else -> when (mood) {
-        "clear" -> Brush.verticalGradient(listOf(Color(0xFFFFE082), Color(0xFFFFCC80), Color(0xFFCCE8E9)))
-        "night" -> Brush.verticalGradient(listOf(Color(0xFF0D47A1), Color(0xFF1565C0), Color(0xFF004F58)))
-        "rain" -> Brush.verticalGradient(listOf(Color(0xFF64B5F6), Color(0xFF90CAF9), Color(0xFFBBDEFB)))
-        "snow" -> Brush.verticalGradient(listOf(Color(0xFF64B5F6), Color(0xFF90CAF9), Color(0xFF9FA8DA)))
-        "storm" -> Brush.verticalGradient(listOf(Color(0xFF006874), Color(0xFF00838F), Color(0xFF4DD0E1)))
-        else -> Brush.verticalGradient(listOf(Color(0xFF78909C), Color(0xFF90A4AE), Color(0xFF80CBC4)))
-    }
+fun heroMoodTopColor(mood: String, dark: Boolean): Color =
+    Color(heroMoodGradientArgb(mood, dark)[0])
+
+fun heroMoodBrush(mood: String, dark: Boolean): Brush =
+    Brush.verticalGradient(heroMoodGradientArgb(mood, dark).map { Color(it) })
+
+fun heroOnArgb(mood: String, dark: Boolean): Int = when {
+    dark -> 0xFFF4F6F7.toInt()
+    mood == "clear" -> 0xFF3E2723.toInt()
+    mood == "night" -> 0xFFEDE7F6.toInt()
+    mood == "rain" || mood == "snow" -> 0xFF0D47A1.toInt()
+    mood == "storm" -> 0xFF4A148C.toInt()
+    else -> 0xFF263238.toInt()
 }
 
-fun heroOnColor(mood: String, dark: Boolean): Color = when {
-    dark -> Color(0xFFF4F6F7)
-    mood == "clear" -> Color(0xFF3E2723)
-    mood == "night" -> Color(0xFFEDE7F6)
-    mood == "rain" || mood == "snow" -> Color(0xFF0D47A1)
-    mood == "storm" -> Color(0xFF4A148C)
-    else -> Color(0xFF263238)
-}
+fun heroOnColor(mood: String, dark: Boolean): Color = Color(heroOnArgb(mood, dark))
 
 @Composable
 fun CurrentHero(
@@ -180,6 +169,11 @@ fun CurrentHero(
                     }
                 )
         ) {
+            HeroIllustration(
+                res = weatherIllustrationRes(mood),
+                dark = dark,
+                modifier = Modifier.matchParentSize()
+            )
             Column(
                 Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)

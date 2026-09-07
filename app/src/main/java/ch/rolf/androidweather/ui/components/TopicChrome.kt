@@ -1,32 +1,84 @@
 package ch.rolf.androidweather.ui.components
 
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import ch.rolf.androidweather.R
 
-enum class TopicMood { Draussen, Wind, Berge, Seen }
+@DrawableRes
+fun topicIllustrationRes(mood: TopicMood): Int = when (mood) {
+    TopicMood.Draussen -> R.drawable.hero_ill_draussen
+    TopicMood.Wind -> R.drawable.hero_ill_wind
+    TopicMood.Berge -> R.drawable.hero_ill_berge
+    TopicMood.Seen -> R.drawable.hero_ill_seen
+    TopicMood.Pendeln -> R.drawable.hero_ill_pendeln
+}
+
+@DrawableRes
+fun weatherIllustrationRes(mood: String): Int = when (mood) {
+    "clear" -> R.drawable.hero_ill_wx_clear
+    "night" -> R.drawable.hero_ill_wx_night
+    "rain" -> R.drawable.hero_ill_wx_rain
+    "snow" -> R.drawable.hero_ill_wx_snow
+    "storm" -> R.drawable.hero_ill_wx_storm
+    "fog" -> R.drawable.hero_ill_wx_fog
+    else -> R.drawable.hero_ill_wx_overcast
+}
+
+@Composable
+fun HeroIllustration(
+    @DrawableRes res: Int,
+    dark: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Box(modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(res),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer { alpha = if (dark) 0.22f else 0.16f }
+        )
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.horizontalGradient(
+                        0f to Color.Black.copy(alpha = if (dark) 0.28f else 0.10f),
+                        0.58f to Color.Transparent
+                    )
+                )
+        )
+    }
+}
+
+enum class TopicMood { Draussen, Wind, Berge, Seen, Pendeln }
 
 fun topicHeroBrush(mood: TopicMood, dark: Boolean): Brush = when (mood) {
     TopicMood.Draussen -> if (dark) {
@@ -49,6 +101,11 @@ fun topicHeroBrush(mood: TopicMood, dark: Boolean): Brush = when (mood) {
     } else {
         Brush.verticalGradient(listOf(Color(0xFF80DEEA), Color(0xFF4DB6AC), Color(0xFF26A69A)))
     }
+    TopicMood.Pendeln -> if (dark) {
+        Brush.verticalGradient(listOf(Color(0xFF2A2450), Color(0xFF32285A), Color(0xFF241E38)))
+    } else {
+        Brush.verticalGradient(listOf(Color(0xFFB39DDB), Color(0xFF9FA8DA), Color(0xFF80CBC4)))
+    }
 }
 
 fun topicOnColor(mood: TopicMood, dark: Boolean): Color = when {
@@ -56,6 +113,7 @@ fun topicOnColor(mood: TopicMood, dark: Boolean): Color = when {
     mood == TopicMood.Draussen -> Color(0xFF3E2723)
     mood == TopicMood.Wind -> Color(0xFF00363D)
     mood == TopicMood.Berge -> Color(0xFF3E2723)
+    mood == TopicMood.Pendeln -> Color(0xFF1A237E)
     else -> Color(0xFF003731)
 }
 
@@ -69,12 +127,14 @@ fun topicChipColors(mood: TopicMood): TopicChipColors {
         TopicMood.Wind -> if (dark) Color(0xFF1A3C40) else Color(0xFFB2EBF2)
         TopicMood.Berge -> if (dark) Color(0xFF4A322C) else Color(0xFFFFE0D4)
         TopicMood.Seen -> if (dark) Color(0xFF144440) else Color(0xFFB2DFDB)
+        TopicMood.Pendeln -> if (dark) Color(0xFF2E2A4A) else Color(0xFFE8DEF8)
     }
     val content = when {
         dark -> Color(0xFFF4EEE6)
         mood == TopicMood.Draussen -> Color(0xFF4E342E)
         mood == TopicMood.Wind -> Color(0xFF004D54)
         mood == TopicMood.Berge -> Color(0xFF4E342E)
+        mood == TopicMood.Pendeln -> Color(0xFF311B92)
         else -> Color(0xFF004D40)
     }
     return TopicChipColors(container, content, content.copy(alpha = 0.72f))
@@ -94,39 +154,36 @@ fun TopicHero(
     val onHero = topicOnColor(mood, dark)
     val muted = onHero.copy(alpha = 0.78f)
     CompositionLocalProvider(LocalContentColor provides onHero) {
-        Column(
+        Box(
             modifier
                 .fillMaxWidth()
+                .heightIn(min = 168.dp)
                 .clip(RoundedCornerShape(28.dp))
                 .background(topicHeroBrush(mood, dark))
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            HeroIllustration(
+                res = topicIllustrationRes(mood),
+                dark = dark,
+                modifier = Modifier.matchParentSize()
+            )
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Box(
-                    Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(onHero.copy(alpha = 0.14f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(icon, contentDescription = null, tint = onHero, modifier = Modifier.size(26.dp))
-                }
                 Text(
                     title,
                     style = MaterialTheme.typography.titleMedium,
                     color = muted,
                     fontWeight = FontWeight.SemiBold
                 )
+                Text(value, style = MaterialTheme.typography.headlineSmall, color = onHero)
+                if (detail.isNotBlank()) {
+                    Text(detail, style = MaterialTheme.typography.bodyLarge, color = muted)
+                }
+                extra()
             }
-            Text(value, style = MaterialTheme.typography.headlineSmall, color = onHero)
-            if (detail.isNotBlank()) {
-                Text(detail, style = MaterialTheme.typography.bodyLarge, color = muted)
-            }
-            extra()
         }
     }
 }

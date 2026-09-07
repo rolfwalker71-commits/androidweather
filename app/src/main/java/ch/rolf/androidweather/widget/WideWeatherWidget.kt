@@ -7,25 +7,20 @@ import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
-import androidx.glance.action.actionStartActivity
-import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.provideContent
-import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
-import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
-import androidx.glance.layout.padding
+import androidx.glance.layout.height
 import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import ch.rolf.androidweather.MainActivity
 
 /** Wide 4x2 widget. Dedicated file so size/layout tweaks stay cheap. */
 class WideWeatherWidget : GlanceAppWidget() {
@@ -41,14 +36,8 @@ class WideWeatherWidget : GlanceAppWidget() {
 @Composable
 fun WideWidgetLayout(snapshot: WidgetSnapshot) {
     val hours = snapshot.hours.take(4)
-    Column(
-        modifier = GlanceModifier
-            .fillMaxSize()
-            .background(GlanceTheme.colors.primaryContainer)
-            .padding(16.dp)
-            .clickable(actionStartActivity<MainActivity>()),
-        verticalAlignment = Alignment.Top
-    ) {
+    val on = widgetOnColor(snapshot.mood)
+    WidgetHeroFrame(mood = snapshot.mood) {
         Row(
             modifier = GlanceModifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -58,7 +47,7 @@ fun WideWidgetLayout(snapshot: WidgetSnapshot) {
                     text = snapshot.placeName,
                     maxLines = 1,
                     style = TextStyle(
-                        color = GlanceTheme.colors.onPrimaryContainer,
+                        color = on,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -67,31 +56,31 @@ fun WideWidgetLayout(snapshot: WidgetSnapshot) {
                     Text(
                         text = snapshot.temperature,
                         style = TextStyle(
-                            color = GlanceTheme.colors.onPrimaryContainer,
-                            fontSize = 37.sp,
+                            color = on,
+                            fontSize = 41.sp,
                             fontWeight = FontWeight.Bold
                         )
                     )
                     Spacer(GlanceModifier.width(8.dp))
-                    GlanceWeatherIcon(glyph = snapshot.glyph, iconSize = 28.dp, wellSize = 36.dp)
+                    GlanceWeatherIcon(glyph = snapshot.glyph, iconSize = 40.dp, wellSize = 52.dp)
                 }
                 Text(
                     text = snapshot.condition,
                     maxLines = 1,
-                    style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 13.sp)
+                    style = TextStyle(color = on, fontSize = 13.sp)
                 )
                 snapshot.highLow?.let { range ->
                     Text(
                         text = "Heute $range",
                         maxLines = 1,
-                        style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 12.sp)
+                        style = TextStyle(color = on, fontSize = 12.sp)
                     )
                 }
                 snapshot.rainLine?.let { line ->
                     Text(
                         text = line,
                         maxLines = 1,
-                        style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 12.sp)
+                        style = TextStyle(color = on, fontSize = 12.sp)
                     )
                 }
             }
@@ -107,15 +96,16 @@ fun WideWidgetLayout(snapshot: WidgetSnapshot) {
                         Text(
                             text = hour.time,
                             maxLines = 1,
-                            style = TextStyle(color = GlanceTheme.colors.onPrimaryContainer, fontSize = 12.sp)
+                            style = TextStyle(color = on, fontSize = 12.sp)
                         )
-                        GlanceWeatherIcon(glyph = hour.glyph, iconSize = 16.dp, wellSize = 22.dp)
+                        Spacer(GlanceModifier.height(4.dp))
+                        GlanceWeatherIcon(glyph = hour.glyph, iconSize = 26.dp, wellSize = 34.dp)
                         Text(
                             text = hour.temperature,
                             style = TextStyle(
-                                color = GlanceTheme.colors.onPrimaryContainer,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium
+                                color = on,
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.Bold
                             )
                         )
                     }

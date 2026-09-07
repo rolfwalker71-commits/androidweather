@@ -26,7 +26,8 @@ fun CitySearch(
     results: List<Place>,
     onQuery: (String) -> Unit,
     onSelect: (Place) -> Unit,
-    placeholder: String = "Stadt weltweit suchen"
+    placeholder: String = "Stadt weltweit suchen",
+    active: Boolean = true
 ) {
     var query by remember { mutableStateOf("") }
     Column {
@@ -42,19 +43,22 @@ fun CitySearch(
             singleLine = true,
             shape = MaterialTheme.shapes.large
         )
-        results.forEach { place ->
-            Text(
-                text = placeLabel(place),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 48.dp)
-                    .clickable {
-                        onSelect(place)
-                        query = ""
-                    }
-                    .padding(horizontal = 8.dp, vertical = 12.dp),
-                style = MaterialTheme.typography.bodyLarge
-            )
+        if (active && query.isNotBlank()) {
+            results.take(8).forEach { place ->
+                Text(
+                    text = placeLabel(place),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
+                        .clickable {
+                            onSelect(place)
+                            query = ""
+                            onQuery("")
+                        }
+                        .padding(horizontal = 8.dp, vertical = 12.dp),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
         }
     }
 }
