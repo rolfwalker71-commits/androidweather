@@ -47,8 +47,8 @@ fun WideFamilyLayout(snapshot: WidgetSnapshot, hourCount: Int) {
     val hours = snapshot.hours.take(hourCount)
     val on = widgetOnColor(snapshot.mood)
     val roomy = LocalSize.current.height >= 150.dp
-    val pad = if (roomy) 12.dp else 8.dp
-    WidgetHeroFrame(mood = snapshot.mood, padding = pad, paddingBottom = 12.dp) {
+    val pad = if (roomy) 8.dp else 6.dp
+    WidgetHeroFrame(mood = snapshot.mood, padding = pad, paddingBottom = 14.dp) {
         Row(
             modifier = GlanceModifier.fillMaxWidth(),
             verticalAlignment = Alignment.Top
@@ -92,20 +92,13 @@ fun WideFamilyLayout(snapshot: WidgetSnapshot, hourCount: Int) {
                     text = snapshot.condition,
                     maxLines = 1,
                     style = TextStyle(color = on, fontSize = if (roomy) 13.sp else 12.sp),
-                    modifier = GlanceModifier.padding(top = (-4).dp)
+                    modifier = GlanceModifier.padding(top = (-6).dp)
                 )
                 snapshot.rainLine?.let { line ->
                     Text(
                         text = line,
                         maxLines = 1,
                         style = TextStyle(color = on, fontSize = 12.sp)
-                    )
-                }
-                snapshot.stationLine?.let { line ->
-                    Text(
-                        text = line,
-                        maxLines = 1,
-                        style = TextStyle(color = on, fontSize = 11.sp)
                     )
                 }
             }
