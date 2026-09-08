@@ -13,10 +13,11 @@ import ch.rolf.androidweather.domain.formatHourLabel
 import ch.rolf.androidweather.domain.formatPercent
 import ch.rolf.androidweather.domain.formatTemp
 import ch.rolf.androidweather.domain.formatTime
+import ch.rolf.androidweather.domain.formatWidgetStationLine
 import ch.rolf.androidweather.domain.formatWidgetUpdated
 import ch.rolf.androidweather.domain.formatWind
 import ch.rolf.androidweather.domain.getWmo
-import ch.rolf.androidweather.domain.nextPrecipLine
+import ch.rolf.androidweather.domain.precipNowSummary
 import ch.rolf.androidweather.domain.samePlace
 import ch.rolf.androidweather.domain.weatherMood
 import ch.rolf.androidweather.domain.windDirection
@@ -47,7 +48,8 @@ data class WidgetSnapshot(
     val mood: String = "cloud",
     val feelsLike: String? = null,
     val sunrise: String? = null,
-    val sunset: String? = null
+    val sunset: String? = null,
+    val stationLine: String? = null
 )
 
 object WidgetPrefs {
@@ -90,7 +92,7 @@ suspend fun loadWidgetSnapshot(context: Context, appWidgetId: Int): WidgetSnapsh
 fun snapshotFrom(
     bundle: WeatherBundle?,
     placeName: String,
-    hourCount: Int = 5,
+    hourCount: Int = 6,
     windUnit: WindUnit = WindUnit.Kmh
 ): WidgetSnapshot {
     if (bundle == null) {
@@ -110,7 +112,9 @@ fun snapshotFrom(
         placeName = placeName,
         temperature = formatTemp(current.temperature_2m),
         condition = wmo.label,
-        rainLine = nextPrecipLine(bundle),
+        rainLine = precipNowSummary(bundle).let { precip ->
+            listOfNotNull(precip.headline, precip.detail).distinct().joinToString(" · ")
+        },
         glyph = wmo.glyph,
         highLow = today?.let { "${formatTemp(it.tMin)} / ${formatTemp(it.tMax)}" },
         hours = hours,
@@ -121,6 +125,7 @@ fun snapshotFrom(
         mood = weatherMood(current.weather_code, current.is_day == 1),
         feelsLike = "Gefühlt ${formatTemp(current.apparent_temperature)}",
         sunrise = today?.sunrise?.takeIf { it.isNotBlank() }?.let { formatTime(it, bundle.timezone) },
-        sunset = today?.sunset?.takeIf { it.isNotBlank() }?.let { formatTime(it, bundle.timezone) }
+        sunset = today?.sunset?.takeIf { it.isNotBlank() }?.let { formatTime(it, bundle.timezone) },
+        stationLine = bundle.station?.let { formatWidgetStationLine(it, bundle.timezone) }
     )
 }

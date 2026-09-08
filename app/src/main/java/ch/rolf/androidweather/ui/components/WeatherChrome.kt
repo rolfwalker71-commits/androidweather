@@ -16,9 +16,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -209,7 +211,9 @@ private fun HourChip(
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Text(label, style = MaterialTheme.typography.labelMedium, color = mood.content)
-        WeatherIcon(code = hour.code, isDay = hour.isDay, size = 28.dp)
+        CompositionLocalProvider(LocalContentColor provides mood.content) {
+            WeatherIcon(code = hour.code, isDay = hour.isDay, size = 28.dp)
+        }
         Text(formatTemp(hour.temperature), style = MaterialTheme.typography.titleMedium, color = mood.content)
         PrecipPill(hour.precipMm, maxPrecip)
         hour.precipProb?.let {

@@ -18,13 +18,13 @@ import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxWidth
-import androidx.glance.layout.height
+import androidx.glance.layout.padding
 import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 
-/** Wide 4x2 widget. Dedicated file so size/layout tweaks stay cheap. */
+/** Wide 4×2 widget. Fills the real cell height so hours sit on the lower half. */
 class WideWeatherWidget : GlanceAppWidget() {
     override val sizeMode: SizeMode = SizeMode.Exact
 
@@ -39,82 +39,110 @@ class WideWeatherWidget : GlanceAppWidget() {
 
 @Composable
 fun WideWidgetLayout(snapshot: WidgetSnapshot) {
-    WideFamilyLayout(snapshot, hourCount = 4)
+    WideFamilyLayout(snapshot, hourCount = 5)
 }
 
-/** Shared 2-row layout used by 4×2. */
 @Composable
-fun WideFamilyLayout(
-    snapshot: WidgetSnapshot,
-    hourCount: Int
-) {
+fun WideFamilyLayout(snapshot: WidgetSnapshot, hourCount: Int) {
     val hours = snapshot.hours.take(hourCount)
     val on = widgetOnColor(snapshot.mood)
-    val compact = LocalSize.current.height < 190.dp
-    val pad = if (compact) 8.dp else 16.dp
-    WidgetHeroFrame(mood = snapshot.mood, padding = pad, paddingBottom = if (compact) 10.dp else 12.dp) {
+    val roomy = LocalSize.current.height >= 150.dp
+    val pad = if (roomy) 12.dp else 8.dp
+    WidgetHeroFrame(mood = snapshot.mood, padding = pad, paddingBottom = 12.dp) {
         Row(
             modifier = GlanceModifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.Top
         ) {
             Column(modifier = GlanceModifier.defaultWeight()) {
-                Text(
-                    text = snapshot.placeName,
-                    maxLines = 1,
-                    style = TextStyle(
-                        color = on,
-                        fontSize = if (compact) 13.sp else 15.sp,
-                        fontWeight = FontWeight.Medium
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = snapshot.placeName,
+                        maxLines = 1,
+                        style = TextStyle(
+                            color = on,
+                            fontSize = if (roomy) 15.sp else 13.sp,
+                            fontWeight = FontWeight.Medium
+                        )
                     )
-                )
+                    snapshot.updatedAt?.let { stamp ->
+                        Text(
+                            text = " $stamp",
+                            maxLines = 1,
+                            style = TextStyle(color = on, fontSize = 9.sp)
+                        )
+                    }
+                }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = snapshot.temperature,
                         style = TextStyle(
                             color = on,
-                            fontSize = if (compact) 30.sp else 41.sp,
+                            fontSize = if (roomy) 50.sp else 40.sp,
                             fontWeight = FontWeight.Bold
                         )
                     )
-                    Spacer(GlanceModifier.width(if (compact) 4.dp else 8.dp))
+                    Spacer(GlanceModifier.width(6.dp))
                     GlanceWeatherIcon(
                         glyph = snapshot.glyph,
-                        iconSize = if (compact) 26.dp else 40.dp,
-                        wellSize = if (compact) 32.dp else 52.dp
+                        iconSize = if (roomy) 48.dp else 38.dp,
+                        tint = on
                     )
                 }
-                if (!compact) {
+                Text(
+                    text = snapshot.condition,
+                    maxLines = 1,
+                    style = TextStyle(color = on, fontSize = if (roomy) 13.sp else 12.sp),
+                    modifier = GlanceModifier.padding(top = (-4).dp)
+                )
+                snapshot.rainLine?.let { line ->
                     Text(
-                        text = snapshot.condition,
-                        maxLines = 1,
-                        style = TextStyle(color = on, fontSize = 13.sp)
-                    )
-                }
-                snapshot.highLow?.let { range ->
-                    Text(
-                        text = if (compact) range else "Heute $range",
+                        text = line,
                         maxLines = 1,
                         style = TextStyle(color = on, fontSize = 12.sp)
                     )
                 }
-                if (!compact) {
-                    snapshot.rainLine?.let { line ->
-                        Text(
-                            text = line,
-                            maxLines = 1,
-                            style = TextStyle(color = on, fontSize = 12.sp)
-                        )
-                    }
+                snapshot.stationLine?.let { line ->
+                    Text(
+                        text = line,
+                        maxLines = 1,
+                        style = TextStyle(color = on, fontSize = 11.sp)
+                    )
                 }
+            }
+            Column(
+                modifier = GlanceModifier.width(152.dp).padding(start = 8.dp),
+                horizontalAlignment = Alignment.End
+            ) {
+                snapshot.highLow?.let { range ->
+                    Text(
+                        text = "Heute $range",
+                        maxLines = 1,
+                        style = TextStyle(
+                            color = on,
+                            fontSize = if (roomy) 14.sp else 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+                snapshot.feelsLike?.let { feels ->
+                    Text(
+                        text = feels,
+                        maxLines = 1,
+                        style = TextStyle(color = on, fontSize = if (roomy) 13.sp else 12.sp)
+                    )
+                }
+                snapshot.wind?.let { wind ->
+                    Text(
+                        text = wind,
+                        maxLines = 1,
+                        style = TextStyle(color = on, fontSize = if (roomy) 13.sp else 12.sp)
+                    )
+                }
+                WidgetSunRow(snapshot, on)
             }
         }
         Spacer(GlanceModifier.defaultWeight())
         if (hours.isNotEmpty()) {
-            val timeSize = if (compact) 11.sp else 12.sp
-            val tempSize = if (compact) 14.sp else 17.sp
-            val icon = if (compact) 18.dp else 26.dp
-            val well = if (compact) 22.dp else 34.dp
-            val gap = if (compact) 1.dp else 4.dp
             Row(modifier = GlanceModifier.fillMaxWidth()) {
                 hours.forEach { hour ->
                     Column(
@@ -124,15 +152,18 @@ fun WideFamilyLayout(
                         Text(
                             text = hour.time,
                             maxLines = 1,
-                            style = TextStyle(color = on, fontSize = timeSize)
+                            style = TextStyle(color = on, fontSize = 10.sp)
                         )
-                        Spacer(GlanceModifier.height(gap))
-                        GlanceWeatherIcon(glyph = hour.glyph, iconSize = icon, wellSize = well)
+                        GlanceWeatherIcon(
+                            glyph = hour.glyph,
+                            iconSize = if (roomy) 22.dp else 20.dp,
+                            tint = on
+                        )
                         Text(
                             text = hour.temperature,
                             style = TextStyle(
                                 color = on,
-                                fontSize = tempSize,
+                                fontSize = if (roomy) 15.sp else 13.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         )

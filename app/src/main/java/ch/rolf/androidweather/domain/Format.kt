@@ -136,6 +136,13 @@ fun formatStationLine(station: StationObservation, timeZone: String? = null): St
     return parts.joinToString(" · ")
 }
 
+fun formatWidgetStationLine(station: StationObservation, timeZone: String? = null): String {
+    val name = station.name.substringBefore(',').trim().ifEmpty { station.name }
+    val core = "$name ${formatTempExact(station.temperature)}"
+    val time = station.observedAt?.let { formatTime(it, timeZone) } ?: return core
+    return "$core · $time"
+}
+
 fun placeLabel(place: Place): String = listOfNotNull(
     place.name,
     place.admin1?.takeIf { it != place.name },
@@ -180,12 +187,15 @@ fun hoursOnDay(hours: List<HourPoint>, date: String): List<HourPoint> =
 fun formatUv(value: Double): String = String.format(java.util.Locale.US, "%.1f", value)
 
 fun formatWidgetUpdated(iso: String, timeZone: String? = null, now: Long = System.currentTimeMillis()): String {
-    val relative = formatUpdatedRelative(iso, now)
     val then = parseForecastEpochMilli(iso, timeZone)
     val minutes = if (then > 0) ((now - then) / 60_000).coerceAtLeast(0) else Long.MAX_VALUE
-    return when {
-        relative.isEmpty() -> "Aktualisiert ${formatTime(iso, timeZone)}"
-        minutes < 60 -> if (relative == "gerade eben") "Aktualisiert gerade eben" else "Aktualisiert $relative"
-        else -> "Aktualisiert ${formatTime(iso, timeZone)}"
+    val whenLabel = when {
+        minutes < 1 -> "gerade eben"
+        minutes == 1L -> "vor 1 Minute"
+        minutes < 60 -> "vor $minutes Minuten"
+        minutes < 120 -> "vor 1 Stunde"
+        minutes < 1440 -> "vor ${minutes / 60} Stunden"
+        else -> formatTime(iso, timeZone)
     }
+    return "(Aktualisiert: $whenLabel)"
 }

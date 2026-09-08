@@ -26,14 +26,15 @@ import ch.rolf.androidweather.domain.windDirection
 import ch.rolf.androidweather.ui.components.heroMoodGradientArgb
 import ch.rolf.androidweather.ui.components.heroOnArgb
 import ch.rolf.androidweather.ui.components.weatherGlyphRes
-import ch.rolf.androidweather.ui.components.weatherIconWellArgb
 
 internal fun collapsedOngoingViews(context: Context, bundle: WeatherBundle): RemoteViews {
     val wmo = getWmo(bundle.current.weather_code, bundle.current.is_day == 1)
     val dark = isNightMode(context)
+    val mood = weatherMood(bundle.current.weather_code, bundle.current.is_day == 1)
+    val onColor = moodOnColor(mood, dark)
     val line = "${bundle.place.name} · ${formatTemp(bundle.current.temperature_2m)} · ${wmo.label}"
     return RemoteViews(context.packageName, R.layout.notification_ongoing_collapsed).apply {
-        setImageViewBitmap(R.id.ongoing_collapsed_icon, weatherIconBitmap(context, wmo.glyph, dark, 28f))
+        setImageViewBitmap(R.id.ongoing_collapsed_icon, weatherIconBitmap(context, wmo.glyph, onColor, 28f))
         setContentDescription(R.id.ongoing_collapsed_icon, wmo.label)
         setTextViewText(R.id.ongoing_collapsed_line, line)
     }
@@ -60,7 +61,7 @@ internal fun expandedOngoingViews(
 
     return RemoteViews(context.packageName, R.layout.notification_ongoing_expanded).apply {
         setImageViewBitmap(R.id.ongoing_mood_bg, moodBackgroundBitmap(context, mood, dark))
-        setImageViewBitmap(R.id.ongoing_icon, weatherIconBitmap(context, wmo.glyph, dark, 52f))
+        setImageViewBitmap(R.id.ongoing_icon, weatherIconBitmap(context, wmo.glyph, onColor, 52f))
         setContentDescription(R.id.ongoing_icon, wmo.label)
 
         setTextViewText(R.id.ongoing_place, bundle.place.name)
@@ -141,18 +142,14 @@ private fun moodBackgroundBitmap(context: Context, mood: String, dark: Boolean):
     return bitmap
 }
 
-private fun weatherIconBitmap(context: Context, glyph: String, dark: Boolean, sizeDp: Float): Bitmap {
+private fun weatherIconBitmap(context: Context, glyph: String, tint: Int, sizeDp: Float): Bitmap {
     val density = context.resources.displayMetrics.density
     val size = (sizeDp * density).toInt().coerceAtLeast(36)
     val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
-    val well = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = weatherIconWellArgb(glyph, dark)
-    }
-    canvas.drawRoundRect(0f, 0f, size.toFloat(), size.toFloat(), size / 2f, size / 2f, well)
-    val inset = (size * 0.12f).toInt().coerceAtLeast(2)
     val drawable = context.getDrawable(weatherGlyphRes(glyph))!!.mutate()
-    drawable.setBounds(inset, inset, size - inset, size - inset)
+    drawable.setTint(tint)
+    drawable.setBounds(0, 0, size, size)
     drawable.draw(canvas)
     return bitmap
 }

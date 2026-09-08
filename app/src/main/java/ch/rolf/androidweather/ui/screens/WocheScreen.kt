@@ -16,11 +16,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -133,12 +135,14 @@ fun WocheScreen(vm: WetterViewModel) {
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                    WeatherIcon(
-                        code = day.code,
-                        isDay = true,
-                        size = 36.dp,
-                        modifier = Modifier.width(40.dp)
-                    )
+                    CompositionLocalProvider(LocalContentColor provides mood.content) {
+                        WeatherIcon(
+                            code = day.code,
+                            isDay = true,
+                            size = 36.dp,
+                            modifier = Modifier.width(40.dp)
+                        )
+                    }
                     TempRangeBar(
                         tMin = day.tMin,
                         tMax = day.tMax,

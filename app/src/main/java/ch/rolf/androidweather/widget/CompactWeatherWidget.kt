@@ -53,7 +53,7 @@ fun CompactWidgetLayout(snapshot: WidgetSnapshot) {
                 )
             )
             Spacer(GlanceModifier.width(8.dp))
-            GlanceWeatherIcon(glyph = snapshot.glyph, iconSize = 40.dp, wellSize = 52.dp)
+            GlanceWeatherIcon(glyph = snapshot.glyph, iconSize = 40.dp, tint = on)
         }
         Text(
             text = snapshot.condition,
