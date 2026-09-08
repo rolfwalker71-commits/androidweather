@@ -19,7 +19,6 @@ import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
-import androidx.glance.layout.padding
 import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
@@ -43,12 +42,11 @@ fun WideWidgetLayout(snapshot: WidgetSnapshot) {
     WideFamilyLayout(snapshot, hourCount = 4)
 }
 
-/** Shared 2-row layout for 4×2 and 5×2. Extra width only adds hours and an optional right sun line. */
+/** Shared 2-row layout used by 4×2. */
 @Composable
 fun WideFamilyLayout(
     snapshot: WidgetSnapshot,
-    hourCount: Int,
-    showSunOnRight: Boolean = false
+    hourCount: Int
 ) {
     val hours = snapshot.hours.take(hourCount)
     val on = widgetOnColor(snapshot.mood)
@@ -107,14 +105,6 @@ fun WideFamilyLayout(
                             style = TextStyle(color = on, fontSize = 12.sp)
                         )
                     }
-                }
-            }
-            if (showSunOnRight) {
-                Column(
-                    modifier = GlanceModifier.padding(start = 8.dp),
-                    horizontalAlignment = Alignment.End
-                ) {
-                    WidgetSunRow(snapshot, on)
                 }
             }
         }
