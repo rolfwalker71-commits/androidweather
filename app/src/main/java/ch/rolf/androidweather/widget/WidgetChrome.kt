@@ -10,18 +10,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
+import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.background
+import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.ColumnScope
+import androidx.glance.layout.Row
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.padding
+import androidx.glance.layout.size
+import androidx.glance.text.Text
+import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import ch.rolf.androidweather.MainActivity
+import ch.rolf.androidweather.R
 import ch.rolf.androidweather.ui.components.heroMoodGradientArgb
 import ch.rolf.androidweather.ui.components.heroOnColor
 
@@ -73,5 +82,34 @@ fun WidgetHeroFrame(
             .padding(start = padding, top = padding, end = padding, bottom = paddingBottom)
     ) {
         content()
+    }
+}
+
+@Composable
+fun WidgetSunRow(snapshot: WidgetSnapshot, on: ColorProvider) {
+    if (snapshot.sunrise == null || snapshot.sunset == null) return
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Image(
+            provider = ImageProvider(R.drawable.ic_widget_sunrise),
+            contentDescription = "Sonnenaufgang",
+            modifier = GlanceModifier.size(13.dp),
+            colorFilter = ColorFilter.tint(on)
+        )
+        Text(
+            text = " ${snapshot.sunrise} – ",
+            maxLines = 1,
+            style = TextStyle(color = on, fontSize = 12.sp)
+        )
+        Image(
+            provider = ImageProvider(R.drawable.ic_widget_sunset),
+            contentDescription = "Sonnenuntergang",
+            modifier = GlanceModifier.size(13.dp),
+            colorFilter = ColorFilter.tint(on)
+        )
+        Text(
+            text = " ${snapshot.sunset}",
+            maxLines = 1,
+            style = TextStyle(color = on, fontSize = 12.sp)
+        )
     }
 }

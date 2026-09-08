@@ -40,7 +40,17 @@ class WideWeatherWidget : GlanceAppWidget() {
 
 @Composable
 fun WideWidgetLayout(snapshot: WidgetSnapshot) {
-    val hours = snapshot.hours.take(4)
+    WideFamilyLayout(snapshot, hourCount = 4)
+}
+
+/** Shared 2-row layout for 4×2 and 5×2. Extra width only adds hours and an optional right sun line. */
+@Composable
+fun WideFamilyLayout(
+    snapshot: WidgetSnapshot,
+    hourCount: Int,
+    showSunOnRight: Boolean = false
+) {
+    val hours = snapshot.hours.take(hourCount)
     val on = widgetOnColor(snapshot.mood)
     val compact = LocalSize.current.height < 190.dp
     val pad = if (compact) 8.dp else 16.dp
@@ -97,6 +107,14 @@ fun WideWidgetLayout(snapshot: WidgetSnapshot) {
                             style = TextStyle(color = on, fontSize = 12.sp)
                         )
                     }
+                }
+            }
+            if (showSunOnRight) {
+                Column(
+                    modifier = GlanceModifier.padding(start = 8.dp),
+                    horizontalAlignment = Alignment.End
+                ) {
+                    WidgetSunRow(snapshot, on)
                 }
             }
         }
